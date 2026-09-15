@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4WARD Leave Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:#0B6E6E;--teal-dim:#084F4F;--teal-light:#E6F4F4;--teal-mid:#1A9090;
+  --amber:#D97706;--amber-light:#FEF3C7;--red:#DC2626;--red-light:#FEE2E2;
+  --green:#16A34A;--green-light:#DCFCE7;--blue:#2563EB;--blue-light:#DBEAFE;
+  --bg:#F7F9F9;--bg2:#EEF3F3;--surface:#FFFFFF;--border:#D1DEDE;
+  --text:#0F2626;--text2:#3D5C5C;--text3:#7A9E9E;
+  --sidebar-w:240px;--radius:10px;
+  --shadow:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 4px 16px rgba(0,0,0,.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+
+/* AUTH */
+#authScreen{min-height:100vh;display:flex;align-items:stretch}
+.auth-left{flex:1;background:var(--teal);display:flex;flex-direction:column;justify-content:center;padding:3rem;color:#fff;position:relative;overflow:hidden}
+.auth-left::before{content:'';position:absolute;top:-40%;right:-20%;width:400px;height:400px;border-radius:50%;background:rgba(255,255,255,.06)}
+.auth-left::after{content:'';position:absolute;bottom:-20%;left:-10%;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.04)}
+.auth-brand{position:relative;z-index:1}
+.auth-brand h1{font-family:'DM Serif Display',serif;font-size:2.5rem;line-height:1.1;margin-bottom:.5rem}
+.auth-brand p{opacity:.75;font-size:15px;margin-bottom:2.5rem}
+.auth-feature{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:14px;opacity:.9}
+.auth-feature .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);flex-shrink:0}
+.auth-right{width:440px;display:flex;flex-direction:column;justify-content:center;padding:3rem;background:var(--surface);max-height:100vh;overflow-y:auto}
+.auth-right h2{font-size:1.5rem;font-weight:700;margin-bottom:.25rem}
+.auth-right p{color:var(--text3);margin-bottom:2rem}
+.form-group{margin-bottom:1rem}
+.form-label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text2)}
+.form-input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);transition:border-color .15s}
+.form-input:focus{outline:none;border-color:var(--teal);background:#fff}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--teal);color:#fff}.btn-primary:hover{background:var(--teal-dim)}
+.btn-secondary{background:var(--bg2);color:var(--text2);border:1.5px solid var(--border)}.btn-secondary:hover{background:var(--border)}
+.btn-danger{background:var(--red);color:#fff}.btn-success{background:var(--green);color:#fff}
+.btn-amber{background:var(--amber);color:#fff}
+.btn-ghost{background:transparent;color:var(--text2)}.btn-ghost:hover{background:var(--bg2)}
+.btn-full{width:100%;justify-content:center;padding:11px}
+.btn-sm{padding:5px 10px;font-size:12px}
+.auth-btn{background:var(--teal);color:#fff;width:100%;padding:12px;border-radius:var(--radius);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;border:none;margin-top:.5rem;transition:background .15s}
+.auth-btn:hover{background:var(--teal-dim)}
+.auth-err{background:var(--red-light);color:var(--red);padding:10px 12px;border-radius:var(--radius);font-size:13px;font-weight:600;margin-bottom:1rem;display:none;border:1.5px solid var(--red)}
+@keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+.auth-err.shake{animation:shake .4s cubic-bezier(.36,.07,.19,.97) both}
+.auth-link{text-align:center;margin-top:1.5rem;font-size:13px;color:var(--text3)}
+.auth-link a{color:var(--teal);text-decoration:none;font-weight:500}
+
+/* SHELL */
+#appShell{display:none;min-height:100vh;flex-direction:row}
+.sidebar{width:var(--sidebar-w);background:var(--teal);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;overflow-y:auto}
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+.sidebar-logo .company{font-family:'DM Serif Display',serif;font-size:18px;color:#fff}
+.sidebar-logo .sub{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
+.sidebar-user{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.12)}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.user-info .name{font-size:13px;font-weight:600;color:#fff}
+.user-info .role{font-size:11px;color:rgba(255,255,255,.55)}
+.sidebar-nav{padding:8px 0;flex:1}
+.nav-section{padding:16px 16px 4px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;color:rgba(255,255,255,.7);cursor:pointer;transition:all .15s;font-size:13px;font-weight:500;border-left:3px solid transparent;position:relative}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:rgba(255,255,255,.8)}
+.nav-badge{position:absolute;right:14px;background:var(--amber);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;min-width:18px;text-align:center}
+.sidebar-bottom{padding:12px 16px;border-top:1px solid rgba(255,255,255,.12)}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;box-shadow:var(--shadow)}
+.topbar-left h2{font-size:17px;font-weight:700}
+.topbar-left p{font-size:12px;color:var(--text3)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+#mainContent{padding:24px;flex:1}
+
+/* CARDS */
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.card-title{font-size:15px;font-weight:700;margin-bottom:4px}
+.card-sub{font-size:12px;color:var(--text3)}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.stat-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;display:flex;align-items:center;gap:14px}
+.stat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.stat-val{font-size:26px;font-weight:700;line-height:1}
+.stat-label{font-size:12px;color:var(--text3);margin-top:3px}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-pending{background:var(--amber-light);color:var(--amber)}
+.badge-approved{background:var(--green-light);color:var(--green)}
+.badge-rejected{background:var(--red-light);color:var(--red)}
+.badge-hr{background:var(--blue-light);color:var(--blue)}
+.badge-teal{background:var(--teal-light);color:var(--teal)}
+
+/* TABLES */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:var(--bg2)}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+td{padding:11px 14px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:var(--bg)}
+.td-muted{color:var(--text3);font-size:12px}
+
+/* MODAL */
+#modalBg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+#modalBg.open{display:flex}
+.modal{background:var(--surface);border-radius:12px;box-shadow:var(--shadow-md);width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-lg{max-width:700px}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:16px;font-weight:700}
+.modal-body{padding:20px 24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.close-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;padding:4px;border-radius:6px}
+.close-btn:hover{background:var(--bg2);color:var(--text)}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:inherit;background:var(--bg);color:var(--text)}
+.form-select:focus{outline:none;border-color:var(--teal)}
+.form-textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);min-height:80px;resize:vertical}
+.form-textarea:focus{outline:none;border-color:var(--teal)}
+
+/* BALANCE */
+.balance-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.balance-card{background:var(--surface);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);border-top:3px solid var(--teal)}
+.balance-card .type{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.balance-card .used{font-size:24px;font-weight:700;color:var(--text);line-height:1}
+.balance-card .of{font-size:12px;color:var(--text3);margin-top:2px}
+.balance-bar{height:4px;background:var(--bg2);border-radius:2px;margin-top:8px;overflow:hidden}
+.balance-fill{height:100%;border-radius:2px;background:var(--teal)}
+.balance-fill.warn{background:var(--amber)}
+.balance-fill.over{background:var(--red)}
+
+/* CALENDAR */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-day-hdr{text-align:center;font-size:11px;font-weight:700;color:var(--text3);padding:6px 0}
+.cal-cell{min-height:70px;border:1px solid var(--border);border-radius:8px;padding:6px;background:var(--surface)}
+.cal-cell.other-month{background:var(--bg);opacity:.5}
+.cal-cell.today{border-color:var(--teal);background:var(--teal-light)}
+.cal-cell.weekend{background:var(--bg)}
+.cal-num{font-size:12px;font-weight:600;margin-bottom:3px}
+.cal-event{font-size:10px;padding:2px 5px;border-radius:4px;margin-bottom:2px;background:var(--teal-light);color:var(--teal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-event.sick{background:var(--red-light);color:var(--red)}
+.cal-event.mat{background:var(--blue-light);color:var(--blue)}
+.cal-event.ber{background:#F3E8FF;color:#7C3AED}
+.cal-event.spl{background:var(--amber-light);color:var(--amber)}
+
+/* MISC */
+.alert{padding:12px 14px;border-radius:var(--radius);margin-bottom:14px;font-size:13px}
+.alert-info{background:var(--blue-light);color:var(--blue)}
+.alert-warn{background:var(--amber-light);color:var(--amber)}
+.alert-success{background:var(--green-light);color:var(--green)}
+.alert-danger{background:var(--red-light);color:var(--red)}
+.empty{text-align:center;padding:3rem 2rem;color:var(--text3)}
+.empty .emoji{font-size:2.5rem;margin-bottom:.75rem}
+#toastContainer{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 16px;border-radius:var(--radius);color:#fff;font-size:13px;font-weight:500;box-shadow:var(--shadow-md);animation:slideIn .2s ease;max-width:300px}
+.toast.success{background:var(--green)}.toast.error{background:var(--red)}.toast.info{background:var(--teal)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.timeline{display:flex;flex-direction:column;gap:12px}
+.timeline-item{display:flex;gap:12px}
+.timeline-dot{width:10px;height:10px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:5px}
+.timeline-content .tl-title{font-size:13px;font-weight:600}
+.timeline-content .tl-meta{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* RESPONSIVE */
+@media(max-width:1024px){.grid-4{grid-template-columns:repeat(2,1fr)}.balance-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){
+  .sidebar{width:100%;height:60px;position:fixed;bottom:0;top:auto;flex-direction:row;overflow-x:auto;overflow-y:hidden}
+  .sidebar-logo,.sidebar-user,.sidebar-bottom{display:none}
+  .sidebar-nav{display:flex;flex-direction:row;padding:0;width:100%}
+  .nav-section{display:none}
+  .nav-item{flex-direction:column;font-size:9px;min-width:60px;height:60px;border-left:none;border-top:3px solid transparent;gap:2px;padding:8px 4px;justify-content:center;flex:1}
+  .nav-item.active{border-left:none;border-top-color:rgba(255,255,255,.8)}
+  .main{margin-left:0;padding-bottom:70px}
+  .grid-4,.grid-3,.grid-2{grid-template-columns:1fr}
+  .balance-grid{grid-template-columns:1fr 1fr}
+  .auth-left{display:none}.auth-right{width:100%}
+  .form-grid{grid-template-columns:1fr}
+  #mainContent{padding:14px}.topbar{padding:10px 14px}
+}
+</style>
+</head>
+<body>
+<div id="authScreen">
+  <div class="auth-left">
+    <div class="auth-brand">
+      <h1>4WARD<br>Leave</h1>
+      <p>HR Leave Management System<br>Southern Operations</p>
+      <div class="auth-feature"><div class="dot"></div>Apply for leave in seconds</div>
+      <div class="auth-feature"><div class="dot"></div>Real-time approval workflow</div>
+      <div class="auth-feature"><div class="dot"></div>Team calendar visibility</div>
+      <div class="auth-feature"><div class="dot"></div>Live leave balance tracking</div>
+      <div class="auth-feature"><div class="dot"></div>Export to Excel anytime</div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <h2>Welcome back</h2>
+    <p>Sign in to your leave portal</p>
+    <div id="authErr" class="auth-err"></div>
+    <div class="form-group"><label class="form-label">Email address</label><input class="form-input" id="authEmail" type="email" placeholder="you@numawater.com"></div>
+    <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="authPassword" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="auth-btn" onclick="doLogin()">Sign In →</button>
+    <div class="auth-link"><a href="#" onclick="toast('Contact your HR Administrator to reset your password.','info');return false">Forgot your password?</a></div>
+    <div style="margin-top:20px;padding:14px;background:var(--bg2);border-radius:var(--radius);font-size:12px;color:var(--text3)">
+      <strong style="color:var(--text2)">ROC</strong><br>
+      a.botah@numawater.com / admin123 (Regional Manager)<br>
+      m.minnow@numawater.com / admin123 (HR)<br>
+      s.boakye@numawater.com / pass123 (Supervisor)<br>
+      i.obosu@numawater.com / pass123 (Employee)<br><br>
+      <strong style="color:var(--text2)">Daboase SDU</strong><br>
+      e.dorvie@numawater.com / pass123 (GM)<br>
+      b.wartemberg@numawater.com / pass123 (Supervisor)<br>
+      i.kumani@numawater.com / pass123 (Employee)<br><br>
+      <strong style="color:var(--text2)">Amenfi SDU</strong><br>
+      j.okom@numawater.com / pass123 (GM)<br>
+      p.appiah@numawater.com / admin123 (HR)<br>
+      k.mensah@numawater.com / pass123 (Supervisor)<br>
+      s.asiedu@numawater.com / pass123 (Employee)<br><br>
+      <strong style="color:var(--text2)">Twifo SDU</strong><br>
+      n.mensah@numawater.com / pass123 (GM)<br>
+      r.mensah@numawater.com / pass123 (Supervisor)<br>
+      k.akugri@numawater.com / pass123 (Employee)<br><br>
+      <strong style="color:var(--text2)">Construction Service Unit</strong><br>
+      r.zolkoere@numawater.com / pass123 (GM)<br>
+      m.otoo@numawater.com / pass123 (Supervisor)<br>
+      i.wiredu@numawater.com / pass123 (Employee)<br><br>
+      <strong style="color:var(--text2)">Product</strong> <span style="font-style:italic">(no GM in source data — Supervisor escalates to Regional Manager)</span><br>
+      e.tachiemenson@numawater.com / pass123 (Supervisor)<br>
+      b.prah@numawater.com / pass123 (Employee)
+    </div>
+  </div>
+</div>
+
+<div id="appShell">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><div class="company">4WARD</div><div class="sub">Leave Management</div></div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sidebarAvatar">--</div>
+      <div class="user-info"><div class="name" id="sidebarName">—</div><div class="role" id="sidebarRole">—</div></div>
+    </div>
+    <div class="sidebar-nav" id="sidebarNav"></div>
+    <div class="sidebar-bottom">
+      <button class="btn btn-ghost btn-full" onclick="doLogout()" style="color:rgba(255,255,255,.7);font-size:13px">← Sign Out</button>
+    </div>
+  </nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left"><h2 id="pageTitle">Dashboard</h2><p id="pageSub"></p></div>
+      <div class="topbar-right">
+        <div style="position:relative">
+          <button class="btn btn-ghost btn-sm" id="notifBell" onclick="toggleNotifPanel(event)" style="font-size:16px;padding:8px;position:relative">
+            🔔<span id="notifDot" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1.5px solid var(--surface)"></span>
+          </button>
+          <div id="notifPanel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;max-height:420px;overflow-y:auto;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-md);border:1px solid var(--border);z-index:100">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:13px;font-weight:700">Notifications</span>
+              <a href="#" onclick="markAllNotifsRead();return false" style="font-size:11px;color:var(--teal);text-decoration:none">Mark all read</a>
+            </div>
+            <div id="notifList"></div>
+          </div>
+        </div>
+        <div class="topbar-right" id="topbarActions" style="padding:0"></div>
+      </div>
+    </div>
+    <div id="mainContent"></div>
+  </div>
+</div>
+
+<div id="modalBg">
+  <div class="modal" id="modalBox">
+    <div class="modal-header"><div class="modal-title" id="modalTitle">Modal</div><button class="close-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+<div id="toastContainer"></div>
+
+<script>
+// ── CONSTANTS ────────────────────────────────────────────────────────────────
+const LEAVE_TYPES=[
+  {id:'annual',label:'Annual Leave',capped:true,color:'teal'},
+  {id:'sick',label:'Sick Leave',capped:true,color:'sick'},
+  {id:'maternity',label:'Paternity/Maternity',capped:false,color:'mat'},
+  {id:'bereavement',label:'Bereavement',capped:false,color:'ber'},
+  {id:'special',label:'Special Leave',capped:false,color:'spl'},
+];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const CY=new Date().getFullYear();
+const ANNUAL_DAYS={Permanent:18,Casual:15};
+const SICK_DAYS=12;
+const PROBATION_MONTHS=6;
+
+const ROLES_SDU=['Employee','Supervisor','GM','HR'];
+const ROLES_ROC=['Employee','Supervisor','Manager','Regional Manager','HR'];
+
+// ── SUPABASE CLIENT ──────────────────────────────────────────────
+const SUPA_URL='https://npxhustzbaelbvyccfca.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5weGh1c3R6YmFlbGJ2eWNjZmNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0ODIwNzcsImV4cCI6MjEwNTA1ODA3N30.Cz0qBoA05CnUK_czztajJGSxzIU3gkriMvZ8dvKBpN0';
+
+async function supaFetch(path,opts={}){
+  const url=SUPA_URL+'/rest/v1/'+path;
+  const headers={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})};
+  try{
+    const res=await fetch(url,{...opts,headers,mode:'cors'});
+    if(!res.ok){const err=await res.text();console.error('Supabase error:',res.status,path,err);return null;}
+    const ct=res.headers.get('content-type')||'';
+    if(ct.includes('application/json')){const t=await res.text();return t?JSON.parse(t):null;}
+    return null;
+  }catch(err){console.error('Supabase fetch failed:',path,err.message);throw err;}
+}
+async function sbGet(table,params=''){return await supaFetch(table+(params?'?'+params:''));}
+async function sbPost(table,body){return await supaFetch(table,{method:'POST',body:JSON.stringify(body)});}
+async function sbPatch(table,filter,body){return await supaFetch(table+'?'+filter,{method:'PATCH',body:JSON.stringify(body)});}
+async function sbDelete(table,filter){return await supaFetch(table+'?'+filter,{method:'DELETE',headers:{'Prefer':'return=minimal'}});}
+
+// Map Supabase snake_case rows to app camelCase
+function mapUnit(r){return {id:r.id,name:r.name,type:r.type};}
+function mapUser(r){return {id:r.id,name:r.name,email:r.email,password:r.password,unitId:r.unit_id,role:r.role,employmentType:r.employment_type,hireDate:r.hire_date,designation:r.designation,reportsTo:r.reports_to};}
+function mapRequest(r){return {id:r.id,userId:r.user_id,leaveType:r.leave_type,startDate:r.start_date,endDate:r.end_date,workingDays:r.working_days,reason:r.reason||'',handover:r.handover||'',status:r.status,year:r.year,createdAt:r.created_at,chain:r.chain||[],currentStep:r.current_step||0,history:r.history||[]};}
+function mapNotif(r){return {id:r.id,toId:r.to_id,fromId:r.from_id,msg:r.msg,link:r.link,createdAt:r.created_at,read:r.read};}
+
+// Map app camelCase to Supabase snake_case
+function userToDb(u){return {id:u.id,name:u.name,email:u.email,password:u.password,unit_id:u.unitId,role:u.role,employment_type:u.employmentType,hire_date:u.hireDate,designation:u.designation,reports_to:u.reportsTo};}
+function requestToDb(r){return {id:r.id,user_id:r.userId,leave_type:r.leaveType,start_date:r.startDate,end_date:r.endDate,working_days:r.workingDays,reason:r.reason,handover:r.handover,status:r.status,year:r.year,created_at:r.createdAt,chain:r.chain,current_step:r.currentStep,history:r.history};}
+function notifToDb(n){return {id:n.id,to_id:n.toId,from_id:n.fromId,msg:n.msg,link:n.link,created_at:n.createdAt,read:n.read};}
+
+let UNITS=[];
+let DB={users:[],requests:[],notifications:[]};
+
+function showBootScreen(msg){
+  let el=document.getElementById('bootScreen');
+  if(!el){
+    el=document.createElement('div');el.id='bootScreen';
+    el.style.cssText='position:fixed;inset:0;background:rgba(11,110,110,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;font-family:Inter,sans-serif';
+    el.innerHTML='<div style="font-size:34px;margin-bottom:10px">🌴</div><div style="font-size:17px;font-weight:700;letter-spacing:.5px">4WARD LEAVE</div><div id="bootMsg" style="font-size:13px;opacity:.75;margin-top:8px">'+msg+'</div><div style="margin-top:22px;width:36px;height:36px;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite"></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
+    document.body.appendChild(el);
+  }else{document.getElementById('bootMsg').textContent=msg;el.style.display='flex';}
+}
+function hideBootScreen(){const el=document.getElementById('bootScreen');if(el)el.style.display='none';}
+
+async function loadFromSupabase(){
+  showBootScreen('Loading data from server…');
+  try{
+    const [units,users,requests,notifications]=await Promise.all([
+      sbGet('units','select=*&order=name'),
+      sbGet('users','select=*&order=name'),
+      sbGet('requests','select=*&order=created_at.desc&limit=5000'),
+      sbGet('notifications','select=*&order=created_at.desc&limit=1000'),
+    ]);
+    UNITS=(units||[]).map(mapUnit);
+    DB.users=(users||[]).map(mapUser);
+    DB.requests=(requests||[]).map(mapRequest);
+    DB.notifications=(notifications||[]).map(mapNotif);
+    hideBootScreen();
+    return true;
+  }catch(err){
+    console.error('Failed to load from Supabase:',err);
+    hideBootScreen();
+    return false;
+  }
+}
+
+// Seeds the database on first run only (if units table is empty)
+async function initDB(){
+  const existing=await sbGet('units','select=id&limit=1');
+  if(existing&&existing.length>0){console.log('Database already seeded');return;}
+  showBootScreen('Setting up database for first time…');
+  const seedUnits=[
+      {id:"roc",name:"ROC",type:"roc"},
+      {id:"product",name:"Product",type:"sdu"},
+      {id:"daboase",name:"Daboase SDU",type:"sdu"},
+      {id:"construction",name:"Construction Service Unit",type:"sdu"},
+      {id:"amenfi",name:"Amenfi SDU",type:"sdu"},
+      {id:"twifo",name:"Twifo SDU",type:"sdu"}
+  ];
+  const seedUsers=[
+      {id:"u1",name:"Agyare Opong Botah",email:"a.botah@numawater.com",password:"admin123",unit_id:"roc",role:"Regional Manager",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Regional Manager",reports_to:null},
+      {id:"u2",name:"Linus Kpenyogyi",email:"l.kpenyogyi@numawater.com",password:"pass123",unit_id:"roc",role:"Manager",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Finance & Procurement Manager",reports_to:"u1"},
+      {id:"u3",name:"Mina Besiwah Minnow",email:"m.minnow@numawater.com",password:"admin123",unit_id:"roc",role:"HR",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Hr/Admin Manager",reports_to:"u1"},
+      {id:"u4",name:"Samuel Boakye",email:"s.boakye@numawater.com",password:"pass123",unit_id:"roc",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Sales Supervisor",reports_to:"u1"},
+      {id:"u5",name:"Jacqueline Fobri",email:"j.fobri@numawater.com",password:"admin123",unit_id:"roc",role:"HR",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Hr/Admin Officer",reports_to:"u1"},
+      {id:"u6",name:"Isaac Obosu",email:"i.obosu@numawater.com",password:"pass123",unit_id:"roc",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Security Officer",reports_to:"u4"},
+      {id:"u7",name:"Eric Obosu",email:"e.obosu@numawater.com",password:"pass123",unit_id:"roc",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Security Officer",reports_to:"u4"},
+      {id:"u8",name:"Sherifatu Yakubu",email:"s.yakubu@numawater.com",password:"pass123",unit_id:"roc",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Offcie Janitor",reports_to:"u4"},
+      {id:"u9",name:"Rita Fynn",email:"r.fynn@numawater.com",password:"pass123",unit_id:"roc",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u4"},
+      {id:"u10",name:"Elizabeth Tachie-Menson",email:"e.tachiemenson@numawater.com",password:"pass123",unit_id:"product",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Product Supervisor",reports_to:"u1"},
+      {id:"u11",name:"Bismark Prah",email:"b.prah@numawater.com",password:"pass123",unit_id:"product",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Facility/Maintenance Officer",reports_to:"u10"},
+      {id:"u12",name:"Obed Appiah",email:"o.appiah@numawater.com",password:"pass123",unit_id:"product",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Bagging Machine Operator",reports_to:"u10"},
+      {id:"u13",name:"Lydia Cudjoe",email:"l.cudjoe@numawater.com",password:"pass123",unit_id:"product",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u10"},
+      {id:"u14",name:"Patricia Agyebeng",email:"p.agyebeng@numawater.com",password:"pass123",unit_id:"product",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u10"},
+      {id:"u15",name:"Ernest Ayitey",email:"e.ayitey@numawater.com",password:"pass123",unit_id:"product",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u10"},
+      {id:"u16",name:"Aaron Asante Okyere",email:"a.okyere@numawater.com",password:"pass123",unit_id:"product",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u10"},
+      {id:"u17",name:"Mohammed Awal",email:"m.awal@numawater.com",password:"pass123",unit_id:"product",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u10"},
+      {id:"u18",name:"Alex Aidoo",email:"a.aidoo@numawater.com",password:"pass123",unit_id:"product",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u10"},
+      {id:"u19",name:"Gideon Appiah",email:"g.appiah@numawater.com",password:"pass123",unit_id:"product",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u10"},
+      {id:"u20",name:"Prosper Gyiku",email:"p.gyiku@numawater.com",password:"pass123",unit_id:"product",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u10"},
+      {id:"u21",name:"Edem Kwabena Dorvie",email:"e.dorvie@numawater.com",password:"pass123",unit_id:"daboase",role:"GM",employment_type:"Permanent",hire_date:"2020-01-01",designation:"General Manager",reports_to:"u1"},
+      {id:"u22",name:"Barbara Wartemberg",email:"b.wartemberg@numawater.com",password:"pass123",unit_id:"daboase",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Finance/Logistics Supervisor",reports_to:"u21"},
+      {id:"u23",name:"Amos Nubanoe Kansi",email:"a.kansi@numawater.com",password:"pass123",unit_id:"daboase",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Utility And Maintenance Supervisor",reports_to:"u21"},
+      {id:"u24",name:"Obed Appoh",email:"o.appoh@numawater.com",password:"pass123",unit_id:"daboase",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Sales Supervisor",reports_to:"u21"},
+      {id:"u25",name:"Isaac Kumani",email:"i.kumani@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Utility Technician",reports_to:"u22"},
+      {id:"u26",name:"Eric Amponsah",email:"e.amponsah@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Sales Coordinator",reports_to:"u22"},
+      {id:"u27",name:"Richard Kwofie",email:"r.kwofie@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Utility Technician",reports_to:"u22"},
+      {id:"u28",name:"Joseph Benjamin Martin",email:"j.martin@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Sales Coordinator",reports_to:"u22"},
+      {id:"u29",name:"Samuel Essuman",email:"s.essuman@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Utility Technician",reports_to:"u22"},
+      {id:"u30",name:"Desmond Yirenkyi",email:"d.yirenkyi@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Utility Technician",reports_to:"u22"},
+      {id:"u31",name:"Ebenezer Abekah",email:"e.abekah@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Tower Specialist / Driver",reports_to:"u22"},
+      {id:"u32",name:"Ruth Dufie Nkansah",email:"r.nkansah@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Customer Service Officer",reports_to:"u22"},
+      {id:"u33",name:"Helena Amoah",email:"h.amoah@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Customer Service Officer",reports_to:"u22"},
+      {id:"u34",name:"Benjamin Anderson",email:"b.anderson@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Construction Officer",reports_to:"u22"},
+      {id:"u35",name:"Godfred Elorm Adjaklo",email:"g.adjaklo@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Stores And Inventory Officer",reports_to:"u22"},
+      {id:"u36",name:"Napoleon Tetteh",email:"n.tetteh@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Utility Officer",reports_to:"u22"},
+      {id:"u37",name:"Barnabas Mussey",email:"b.mussey@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Hand Pump Specialist",reports_to:"u22"},
+      {id:"u38",name:"Seth Dadzie",email:"s.dadzie@numawater.com",password:"pass123",unit_id:"daboase",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Multiply Coordinator",reports_to:"u22"},
+      {id:"u39",name:"Rudolf Zolko-Ere",email:"r.zolkoere@numawater.com",password:"pass123",unit_id:"construction",role:"GM",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Construction Manager",reports_to:"u1"},
+      {id:"u40",name:"Mark Otoo",email:"m.otoo@numawater.com",password:"pass123",unit_id:"construction",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Technical Supervisor",reports_to:"u39"},
+      {id:"u41",name:"John Nkrumah",email:"j.nkrumah@numawater.com",password:"pass123",unit_id:"construction",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Plumbing Supervisor",reports_to:"u39"},
+      {id:"u42",name:"Benjamin Anderson",email:"b.anderson2@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Construction Officer",reports_to:"u40"},
+      {id:"u43",name:"Isaac Arkoh Wiredu",email:"i.wiredu@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Driver/Welding & Fabrication",reports_to:"u40"},
+      {id:"u44",name:"Charles Ofosu Atweri",email:"c.atweri@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Mechanic Driver",reports_to:"u40"},
+      {id:"u45",name:"Issa Ofori",email:"i.ofori@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Driver/Welder",reports_to:"u40"},
+      {id:"u46",name:"Richard Ankrah",email:"r.ankrah@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Tricycle Rider/Plumbing Specialist",reports_to:"u40"},
+      {id:"u47",name:"Samuel Ayensu",email:"s.ayensu@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Mason Specialist",reports_to:"u40"},
+      {id:"u48",name:"Shadrach Donkor",email:"s.donkor@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Trencher Operator",reports_to:"u40"},
+      {id:"u49",name:"Emmanuel Hayford",email:"e.hayford@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Sprayer",reports_to:"u40"},
+      {id:"u50",name:"Ebenezer Mensah",email:"e.mensah@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Plumbing Assistant",reports_to:"u40"},
+      {id:"u51",name:"Senyo Afetornu",email:"s.afetornu@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Plumbing Assistant",reports_to:"u40"},
+      {id:"u52",name:"Joseph Amoako",email:"j.amoako@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Mason Specialist",reports_to:"u40"},
+      {id:"u53",name:"Cephas Kojo Mensah",email:"c.mensah@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u40"},
+      {id:"u54",name:"Frank Hagan",email:"f.hagan@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u40"},
+      {id:"u55",name:"Alexander Asare",email:"a.asare@numawater.com",password:"pass123",unit_id:"construction",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u40"},
+      {id:"u56",name:"James Owuraku Okom",email:"j.okom@numawater.com",password:"pass123",unit_id:"amenfi",role:"GM",employment_type:"Permanent",hire_date:"2020-01-01",designation:"General Manager",reports_to:"u1"},
+      {id:"u57",name:"Kojo Danquah Mensah",email:"k.mensah@numawater.com",password:"pass123",unit_id:"amenfi",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Sales Supervisor",reports_to:"u56"},
+      {id:"u58",name:"Lawrence Selasie Awu",email:"l.awu@numawater.com",password:"pass123",unit_id:"amenfi",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Finance Supervisor",reports_to:"u56"},
+      {id:"u59",name:"Stephen Asiedu",email:"s.asiedu@numawater.com",password:"pass123",unit_id:"amenfi",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Driver",reports_to:"u57"},
+      {id:"u60",name:"Joseph Kweku Affedzie",email:"j.affedzie@numawater.com",password:"pass123",unit_id:"amenfi",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Procurement Officer",reports_to:"u57"},
+      {id:"u61",name:"Patience Albright Appiah",email:"p.appiah@numawater.com",password:"admin123",unit_id:"amenfi",role:"HR",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Hr/Administrative Officer",reports_to:"u1"},
+      {id:"u62",name:"Joshua Boanya",email:"j.boanya@numawater.com",password:"pass123",unit_id:"amenfi",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Construction Officer",reports_to:"u57"},
+      {id:"u63",name:"Ishmael Ackah",email:"i.ackah@numawater.com",password:"pass123",unit_id:"amenfi",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Utility Technician",reports_to:"u57"},
+      {id:"u64",name:"Godwin Ampong",email:"g.ampong@numawater.com",password:"pass123",unit_id:"amenfi",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Plumbing Specialist",reports_to:"u57"},
+      {id:"u65",name:"Asibit Akuka",email:"a.akuka@numawater.com",password:"pass123",unit_id:"amenfi",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Plumbing Specialist (Const)",reports_to:"u57"},
+      {id:"u66",name:"Japhet Essel",email:"j.essel@numawater.com",password:"pass123",unit_id:"amenfi",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Mason Assistant/Tricycle",reports_to:"u57"},
+      {id:"u67",name:"Isaac Hayford",email:"i.hayford@numawater.com",password:"pass123",unit_id:"amenfi",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Mason Specialist",reports_to:"u57"},
+      {id:"u68",name:"Timothy Nutifafa Tretsu",email:"t.tretsu@numawater.com",password:"pass123",unit_id:"amenfi",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Plumbing Assistant",reports_to:"u57"},
+      {id:"u69",name:"Ebenezer Atomu",email:"e.atomu@numawater.com",password:"pass123",unit_id:"amenfi",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Plumbing Assistant",reports_to:"u57"},
+      {id:"u70",name:"Charles Quaye",email:"c.quaye@numawater.com",password:"pass123",unit_id:"amenfi",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Trencher",reports_to:"u57"},
+      {id:"u71",name:"Nasir Hayford Mensah",email:"n.mensah@numawater.com",password:"pass123",unit_id:"twifo",role:"GM",employment_type:"Permanent",hire_date:"2020-01-01",designation:"General Manager",reports_to:"u1"},
+      {id:"u72",name:"Richmond Kofi Mensah",email:"r.mensah@numawater.com",password:"pass123",unit_id:"twifo",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Cluster Sales Supervisor",reports_to:"u71"},
+      {id:"u73",name:"Gifty Ninson",email:"g.ninson@numawater.com",password:"pass123",unit_id:"twifo",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Sales Supervisor",reports_to:"u71"},
+      {id:"u74",name:"Bernard Suapim",email:"b.suapim@numawater.com",password:"pass123",unit_id:"twifo",role:"Supervisor",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Utility And Maintenance Supervisor",reports_to:"u71"},
+      {id:"u75",name:"Karim Dramani Akugri",email:"k.akugri@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Field Officer/Abt",reports_to:"u72"},
+      {id:"u76",name:"Adams Hanson",email:"a.hanson@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Plumbing Specialist",reports_to:"u72"},
+      {id:"u77",name:"Sylvester Agyekum",email:"s.agyekum@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Utility Technician",reports_to:"u72"},
+      {id:"u78",name:"Grace Lartele Ayiku",email:"g.ayiku@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Customer Service Officer",reports_to:"u72"},
+      {id:"u79",name:"Gifty Nana Aba Baidoo",email:"g.baidoo@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Customer Service Officer",reports_to:"u72"},
+      {id:"u80",name:"Thomas Arthur",email:"t.arthur@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Utility Technician",reports_to:"u72"},
+      {id:"u81",name:"Doreen Okwan",email:"d.okwan@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Stores And Inventory Personnel",reports_to:"u72"},
+      {id:"u82",name:"Emmanuel Mensah",email:"e.mensah2@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Driver Mechanic",reports_to:"u72"},
+      {id:"u83",name:"Raphael Junior Sackey",email:"r.sackey@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u72"},
+      {id:"u84",name:"Joseph Rockson",email:"j.rockson@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u72"},
+      {id:"u85",name:"Bismark Arhin",email:"b.arhin@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u72"},
+      {id:"u86",name:"Olivia Donkor",email:"o.donkor@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u72"},
+      {id:"u87",name:"Thahil",email:"t.thahil@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Gap",reports_to:"u72"},
+      {id:"u88",name:"Ransford Awortwe",email:"r.awortwe@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Gap",reports_to:"u72"},
+      {id:"u89",name:"Daniel Kulvo",email:"d.kulvo@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Gap",reports_to:"u72"},
+      {id:"u90",name:"Simon Gambilla",email:"s.gambilla@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Casual",hire_date:"2020-01-01",designation:"Contract Casual Worker",reports_to:"u72"},
+      {id:"u91",name:"Terrance Biewee",email:"t.biewee@numawater.com",password:"pass123",unit_id:"twifo",role:"Employee",employment_type:"Permanent",hire_date:"2020-01-01",designation:"Field Assistant",reports_to:"u72"}
+  ];
+  const seedRequests=[
+      {id:"r1",user_id:"u1",leave_type:"annual",start_date:"2026-06-01",end_date:"2026-06-04",working_days:4,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r2",user_id:"u1",leave_type:"annual",start_date:"2026-07-01",end_date:"2026-07-02",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r3",user_id:"u2",leave_type:"annual",start_date:"2026-04-02",end_date:"2026-04-03",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r4",user_id:"u2",leave_type:"annual",start_date:"2026-06-02",end_date:"2026-06-08",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r5",user_id:"u3",leave_type:"annual",start_date:"2026-03-03",end_date:"2026-03-19",working_days:13,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-03-03T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r6",user_id:"u3",leave_type:"annual",start_date:"2026-04-03",end_date:"2026-04-03",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-03T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r7",user_id:"u4",leave_type:"annual",start_date:"2026-04-06",end_date:"2026-04-06",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-06T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r8",user_id:"u4",leave_type:"annual",start_date:"2026-05-04",end_date:"2026-05-07",working_days:4,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-04T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r9",user_id:"u5",leave_type:"annual",start_date:"2026-01-05",end_date:"2026-01-12",working_days:6,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-01-05T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r10",user_id:"u5",leave_type:"bereavement",start_date:"2026-01-05",end_date:"2026-01-08",working_days:4,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-01-05T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r11",user_id:"u6",leave_type:"annual",start_date:"2026-06-08",end_date:"2026-06-12",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-08T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r12",user_id:"u7",leave_type:"annual",start_date:"2026-05-07",end_date:"2026-05-11",working_days:3,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-07T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r13",user_id:"u10",leave_type:"sick",start_date:"2026-02-10",end_date:"2026-02-11",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-02-10T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r14",user_id:"u10",leave_type:"annual",start_date:"2026-03-10",end_date:"2026-03-10",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-03-10T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r15",user_id:"u10",leave_type:"annual",start_date:"2026-06-10",end_date:"2026-06-11",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-10T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r16",user_id:"u10",leave_type:"annual",start_date:"2026-07-10",end_date:"2026-07-16",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-10T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r17",user_id:"u11",leave_type:"annual",start_date:"2026-01-01",end_date:"2026-01-05",working_days:3,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-01-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r18",user_id:"u11",leave_type:"annual",start_date:"2026-04-01",end_date:"2026-04-06",working_days:4,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r19",user_id:"u11",leave_type:"annual",start_date:"2026-06-01",end_date:"2026-06-02",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r20",user_id:"u12",leave_type:"annual",start_date:"2026-04-02",end_date:"2026-04-06",working_days:3,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r21",user_id:"u12",leave_type:"annual",start_date:"2026-06-02",end_date:"2026-06-05",working_days:4,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r22",user_id:"u13",leave_type:"annual",start_date:"2026-06-03",end_date:"2026-06-04",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-03T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r23",user_id:"u14",leave_type:"annual",start_date:"2026-04-06",end_date:"2026-04-07",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-06T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r24",user_id:"u14",leave_type:"annual",start_date:"2026-06-04",end_date:"2026-06-05",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-04T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r25",user_id:"u15",leave_type:"annual",start_date:"2026-06-05",end_date:"2026-06-16",working_days:8,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-05T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r26",user_id:"u22",leave_type:"annual",start_date:"2026-03-02",end_date:"2026-03-06",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-03-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r27",user_id:"u22",leave_type:"annual",start_date:"2026-04-02",end_date:"2026-04-02",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r28",user_id:"u22",leave_type:"annual",start_date:"2026-07-02",end_date:"2026-07-08",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r29",user_id:"u23",leave_type:"annual",start_date:"2026-06-03",end_date:"2026-06-08",working_days:4,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-03T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r30",user_id:"u24",leave_type:"annual",start_date:"2026-05-04",end_date:"2026-05-06",working_days:3,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-04T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r31",user_id:"u25",leave_type:"annual",start_date:"2026-06-05",end_date:"2026-06-05",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-05T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r32",user_id:"u25",leave_type:"annual",start_date:"2026-07-06",end_date:"2026-07-09",working_days:4,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-06T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r33",user_id:"u27",leave_type:"annual",start_date:"2026-07-07",end_date:"2026-07-13",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-07T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r34",user_id:"u29",leave_type:"annual",start_date:"2026-05-11",end_date:"2026-05-15",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-11T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r35",user_id:"u30",leave_type:"annual",start_date:"2026-04-10",end_date:"2026-04-20",working_days:7,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-10T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r36",user_id:"u32",leave_type:"annual",start_date:"2026-06-02",end_date:"2026-06-03",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r37",user_id:"u33",leave_type:"annual",start_date:"2026-06-03",end_date:"2026-06-09",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-03T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r38",user_id:"u35",leave_type:"annual",start_date:"2026-03-05",end_date:"2026-03-05",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-03-05T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r39",user_id:"u35",leave_type:"annual",start_date:"2026-06-05",end_date:"2026-06-09",working_days:3,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-05T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r40",user_id:"u35",leave_type:"annual",start_date:"2026-07-06",end_date:"2026-07-06",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-06T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r41",user_id:"u36",leave_type:"annual",start_date:"2026-07-06",end_date:"2026-07-10",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-06T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r42",user_id:"u39",leave_type:"annual",start_date:"2026-04-09",end_date:"2026-04-10",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-09T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r43",user_id:"u39",leave_type:"annual",start_date:"2026-06-09",end_date:"2026-06-15",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-09T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r44",user_id:"u40",leave_type:"annual",start_date:"2026-06-10",end_date:"2026-06-11",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-10T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r45",user_id:"u40",leave_type:"annual",start_date:"2026-07-10",end_date:"2026-07-10",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-10T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r46",user_id:"u41",leave_type:"maternity",start_date:"2026-01-01",end_date:"2026-01-07",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-01-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r47",user_id:"u41",leave_type:"annual",start_date:"2026-06-01",end_date:"2026-06-05",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r48",user_id:"u42",leave_type:"annual",start_date:"2026-04-02",end_date:"2026-04-03",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r49",user_id:"u42",leave_type:"annual",start_date:"2026-06-02",end_date:"2026-06-08",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r50",user_id:"u43",leave_type:"annual",start_date:"2026-03-03",end_date:"2026-03-05",working_days:3,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-03-03T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r51",user_id:"u43",leave_type:"annual",start_date:"2026-05-04",end_date:"2026-05-08",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-04T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r52",user_id:"u43",leave_type:"bereavement",start_date:"2026-05-04",end_date:"2026-05-04",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-04T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r53",user_id:"u44",leave_type:"annual",start_date:"2026-04-06",end_date:"2026-04-10",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-06T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r54",user_id:"u44",leave_type:"annual",start_date:"2026-05-04",end_date:"2026-05-07",working_days:4,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-04T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r55",user_id:"u45",leave_type:"annual",start_date:"2026-07-06",end_date:"2026-07-14",working_days:7,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-06T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r56",user_id:"u49",leave_type:"annual",start_date:"2026-06-09",end_date:"2026-06-15",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-09T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r57",user_id:"u50",leave_type:"annual",start_date:"2026-05-11",end_date:"2026-05-15",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-11T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r58",user_id:"u51",leave_type:"annual",start_date:"2026-04-01",end_date:"2026-04-08",working_days:6,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r59",user_id:"u57",leave_type:"annual",start_date:"2026-05-07",end_date:"2026-05-08",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-07T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r60",user_id:"u58",leave_type:"annual",start_date:"2026-02-09",end_date:"2026-02-10",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-02-09T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r61",user_id:"u58",leave_type:"annual",start_date:"2026-04-08",end_date:"2026-04-13",working_days:4,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-08T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r62",user_id:"u58",leave_type:"annual",start_date:"2026-07-08",end_date:"2026-07-15",working_days:6,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-08T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r63",user_id:"u59",leave_type:"annual",start_date:"2026-06-09",end_date:"2026-06-10",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-09T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r64",user_id:"u61",leave_type:"annual",start_date:"2026-03-02",end_date:"2026-03-02",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-03-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r65",user_id:"u61",leave_type:"annual",start_date:"2026-04-01",end_date:"2026-04-06",working_days:4,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r66",user_id:"u61",leave_type:"annual",start_date:"2026-05-01",end_date:"2026-05-04",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r67",user_id:"u65",leave_type:"annual",start_date:"2026-03-05",end_date:"2026-03-09",working_days:3,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-03-05T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r68",user_id:"u66",leave_type:"annual",start_date:"2026-05-06",end_date:"2026-05-06",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-06T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r69",user_id:"u66",leave_type:"annual",start_date:"2026-07-06",end_date:"2026-07-10",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-06T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r70",user_id:"u68",leave_type:"annual",start_date:"2026-01-08",end_date:"2026-01-08",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-01-08T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r71",user_id:"u68",leave_type:"annual",start_date:"2026-02-09",end_date:"2026-02-10",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-02-09T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r72",user_id:"u68",leave_type:"annual",start_date:"2026-03-09",end_date:"2026-03-10",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-03-09T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r73",user_id:"u70",leave_type:"annual",start_date:"2026-04-10",end_date:"2026-04-13",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-10T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r74",user_id:"u70",leave_type:"annual",start_date:"2026-05-11",end_date:"2026-05-12",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-11T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r75",user_id:"u71",leave_type:"sick",start_date:"2026-06-01",end_date:"2026-06-01",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r76",user_id:"u71",leave_type:"annual",start_date:"2026-07-01",end_date:"2026-07-07",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r77",user_id:"u72",leave_type:"annual",start_date:"2026-02-02",end_date:"2026-02-06",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-02-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r78",user_id:"u72",leave_type:"maternity",start_date:"2026-02-02",end_date:"2026-02-06",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-02-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r79",user_id:"u73",leave_type:"annual",start_date:"2026-06-03",end_date:"2026-06-10",working_days:6,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-03T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r80",user_id:"u73",leave_type:"sick",start_date:"2026-06-03",end_date:"2026-06-03",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-03T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r81",user_id:"u74",leave_type:"annual",start_date:"2026-02-04",end_date:"2026-02-06",working_days:3,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-02-04T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r82",user_id:"u74",leave_type:"sick",start_date:"2026-02-04",end_date:"2026-02-04",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-02-04T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r83",user_id:"u74",leave_type:"annual",start_date:"2026-06-04",end_date:"2026-06-10",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-04T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r84",user_id:"u75",leave_type:"annual",start_date:"2026-03-05",end_date:"2026-03-10",working_days:4,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-03-05T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r85",user_id:"u76",leave_type:"sick",start_date:"2026-04-06",end_date:"2026-04-06",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-06T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r86",user_id:"u76",leave_type:"annual",start_date:"2026-06-08",end_date:"2026-06-12",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-08T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r87",user_id:"u77",leave_type:"annual",start_date:"2026-03-09",end_date:"2026-03-10",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-03-09T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r88",user_id:"u77",leave_type:"annual",start_date:"2026-04-07",end_date:"2026-04-07",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-07T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r89",user_id:"u77",leave_type:"annual",start_date:"2026-07-07",end_date:"2026-07-13",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-07T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r90",user_id:"u78",leave_type:"annual",start_date:"2026-02-09",end_date:"2026-02-09",working_days:1,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-02-09T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r91",user_id:"u78",leave_type:"annual",start_date:"2026-07-08",end_date:"2026-07-16",working_days:7,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-08T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r92",user_id:"u79",leave_type:"annual",start_date:"2026-04-09",end_date:"2026-04-16",working_days:6,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-09T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r93",user_id:"u80",leave_type:"sick",start_date:"2026-04-10",end_date:"2026-04-13",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-10T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r94",user_id:"u80",leave_type:"annual",start_date:"2026-05-11",end_date:"2026-05-15",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-11T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r95",user_id:"u80",leave_type:"sick",start_date:"2026-05-11",end_date:"2026-05-15",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-11T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r96",user_id:"u81",leave_type:"sick",start_date:"2026-04-01",end_date:"2026-04-02",working_days:2,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-04-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r97",user_id:"u81",leave_type:"annual",start_date:"2026-05-01",end_date:"2026-05-07",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r98",user_id:"u81",leave_type:"sick",start_date:"2026-05-01",end_date:"2026-05-05",working_days:3,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r99",user_id:"u81",leave_type:"annual",start_date:"2026-07-01",end_date:"2026-07-07",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-07-01T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r100",user_id:"u82",leave_type:"annual",start_date:"2026-06-02",end_date:"2026-06-10",working_days:7,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-06-02T09:00:00.000Z",chain:[],current_step:0,history:[]},
+      {id:"r101",user_id:"u87",leave_type:"sick",start_date:"2026-05-07",end_date:"2026-05-13",working_days:5,reason:"",handover:"",status:"approved",year:2026,created_at:"2026-05-07T09:00:00.000Z",chain:[],current_step:0,history:[]}
+  ];
+  await sbPost('units',seedUnits);
+  await sbPost('users',seedUsers);
+  await sbPost('requests',seedRequests);
+  hideBootScreen();
+  console.log('Database seeded:',seedUnits.length,'units,',seedUsers.length,'users,',seedRequests.length,'requests');
+}
+
+let currentUser=null,currentView='dashboard',calYear=CY,calMonth=new Date().getMonth();
+
+// ── PERSISTENCE ──────────────────────────────────────────────────────────────
+function saveDB(){/* legacy no-op — all writes now go straight to Supabase at the point of mutation */}
+function loadDB(){/* legacy no-op — data is loaded from Supabase during boot */}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function fmtDate(s){if(!s)return'—';const d=new Date(s);return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}
+function daysBetween(a,b){let d1=new Date(a),d2=new Date(b),c=0;while(d1<=d2){const wd=d1.getDay();if(wd!==0&&wd!==6)c++;d1.setDate(d1.getDate()+1)}return c}
+function getUserById(id){return DB.users.find(u=>u.id===id)}
+function getUnit(id){return UNITS.find(u=>u.id===id)}
+function initials(n){return(n||'').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}
+function toast(msg,type='success'){const el=document.createElement('div');el.className='toast '+type;el.textContent=msg;document.getElementById('toastContainer').appendChild(el);setTimeout(()=>el.remove(),3500)}
+function openModal(title,body,footer,lg){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').innerHTML=body;document.getElementById('modalFooter').innerHTML=footer||'';document.getElementById('modalBox').className='modal'+(lg?' modal-lg':'');document.getElementById('modalBg').classList.add('open')}
+function closeModal(){document.getElementById('modalBg').classList.remove('open')}
+function rolesForUnit(unitId){const u=getUnit(unitId);return u&&u.type==='roc'?ROLES_ROC:ROLES_SDU}
+function unitUsers(unitId,role){return DB.users.filter(u=>u.unitId===unitId&&(!role||u.role===role))}
+function isROCUser(u){const un=getUnit(u.unitId);return un&&un.type==='roc'}
+function getRegionalManager(){return DB.users.find(u=>u.role==='Regional Manager')}
+
+// ── APPROVAL CHAIN ENGINE ─────────────────────────────────────────────────────
+// Every request carries its own chain computed at submission time, so later org changes don't retroactively break in-flight requests.
+function getApprovalChain(user){
+  const rm=getRegionalManager();
+  const unit=getUnit(user.unitId);
+  if(user.role==='Regional Manager'){
+    const hrRoc=DB.users.find(u=>u.unitId==='roc'&&u.role==='HR');
+    return hrRoc?[{type:'hr',unitId:'roc'}]:[];
+  }
+  if(user.role==='HR'){
+    return rm?[{type:'approver',userId:rm.id}]:[];
+  }
+  // Employee / Supervisor / GM / Manager: direct approver, then an HR sign-off
+  const approver=getUserById(user.reportsTo);
+  const chain=[];
+  if(approver) chain.push({type:'approver',userId:approver.id});
+  // At an SDU, an ordinary Employee's request also needs the GM's sign-off (in addition to their Supervisor), unless the Supervisor's own approver already IS the GM.
+  if(user.role==='Employee'&&unit&&unit.type==='sdu'){
+    const gms=unitUsers(user.unitId,'GM');
+    if(gms.length&&(!approver||approver.role!=='GM')){
+      chain.push({type:'approver',userId:gms[0].id});
+    }
+  }
+  const lastApprover=chain.length?getUserById(chain[chain.length-1].userId):null;
+  // Which unit's HR finalizes? If it escalated outside the user's own unit (e.g. to the Regional Manager at ROC), ROC HR finalizes. Otherwise the user's own unit HR finalizes.
+  let hrUnitId=(lastApprover&&lastApprover.unitId!==user.unitId)?lastApprover.unitId:user.unitId;
+  let hrExists=DB.users.some(u=>u.unitId===hrUnitId&&u.role==='HR');
+  if(!hrExists){hrUnitId='roc';} // fallback safety net
+  chain.push({type:'hr',unitId:hrUnitId});
+  return chain;
+}
+function stepLabel(step){
+  if(!step)return'';
+  if(step.type==='approver'){const u=getUserById(step.userId);return u?`${u.name} (${u.role})`:'Approver';}
+  return `HR — ${getUnit(step.unitId)?.name||''}`;
+}
+function isAwaitingMe(req){
+  if(req.status!=='pending')return false;
+  const step=req.chain[req.currentStep];
+  if(!step)return false;
+  if(step.type==='approver')return step.userId===currentUser.id;
+  if(step.type==='hr')return currentUser.role==='HR'&&currentUser.unitId===step.unitId;
+  return false;
+}
+function pendingCount(){
+  if(!currentUser)return 0;
+  return DB.requests.filter(isAwaitingMe).length;
+}
+
+// ── ENTITLEMENT & BALANCE ─────────────────────────────────────────────────────
+function monthsBetween(d1,d2){let m=(d2.getFullYear()-d1.getFullYear())*12+(d2.getMonth()-d1.getMonth());if(d2.getDate()<d1.getDate())m--;return Math.max(0,m)}
+function probationEndDate(user){const d=new Date(user.hireDate);d.setMonth(d.getMonth()+PROBATION_MONTHS);return d}
+function isOnProbation(user,asOf){asOf=asOf||new Date();return asOf<probationEndDate(user)}
+function getAnnualEntitlement(user,year){
+  const fullEnt=ANNUAL_DAYS[user.employmentType]||18;
+  const rate=fullEnt/12;
+  const probEnd=probationEndDate(user);
+  const yearStart=new Date(year,0,1);
+  const today=new Date();
+  // Already fully past probation before this year even started — full entitlement from day 1, every year after.
+  if(probEnd<=yearStart)return fullEnt;
+  // Probation ends during this year (or hasn't ended yet) — this is their transition year, so prorate from the month they become eligible.
+  const effectiveAsOf=year<today.getFullYear()?new Date(year,11,31):(year>today.getFullYear()?yearStart:today);
+  if(probEnd>effectiveAsOf)return 0; // still on probation as of the date being checked
+  const startIdx=probEnd.getFullYear()<year?0:probEnd.getMonth();
+  const asOfIdx=effectiveAsOf.getFullYear()>year?11:effectiveAsOf.getMonth();
+  if(startIdx>asOfIdx)return 0;
+  const monthsAccrued=asOfIdx-startIdx+1;
+  let ent=Math.min(fullEnt,monthsAccrued*rate);
+  return Math.round(ent*2)/2;
+}
+function getBalance(userId,year){
+  const user=getUserById(userId);
+  const bal={};
+  LEAVE_TYPES.forEach(t=>{
+    let ent=null;
+    if(user){
+      if(t.id==='annual')ent=getAnnualEntitlement(user,year);
+      else if(t.id==='sick')ent=SICK_DAYS;
+    }
+    bal[t.id]={used:0,entitlement:ent};
+  });
+  DB.requests.filter(r=>r.userId===userId&&r.year===year&&r.status==='approved').forEach(r=>{if(bal[r.leaveType])bal[r.leaveType].used+=r.workingDays;});
+  return bal;
+}
+function statusBadge(s){return s==='pending'?'badge-pending':s==='approved'?'badge-approved':s==='rejected'?'badge-rejected':'badge-pending'}
+function statusLabel(s){return s==='pending'?'Pending':s==='approved'?'Approved':s==='rejected'?'Rejected':s}
+
+// ── VISIBILITY SCOPING ────────────────────────────────────────────────────────
+function visibleUnitIds(){
+  if(isROCUser(currentUser))return UNITS.map(u=>u.id);
+  return [currentUser.unitId];
+}
+function visibleUsers(){const ids=visibleUnitIds();return DB.users.filter(u=>ids.includes(u.unitId))}
+function visibleRequests(){const ids=new Set(visibleUsers().map(u=>u.id));return DB.requests.filter(r=>ids.has(r.userId))}
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+function doLogin(){
+  const email=document.getElementById('authEmail').value.trim();
+  const pw=document.getElementById('authPassword').value;
+  const errEl=document.getElementById('authErr');
+  if(!email||!pw){
+    showAuthError('Please enter both your email and password.');
+    return;
+  }
+  const user=DB.users.find(u=>u.email===email&&u.password===pw);
+  if(!user){
+    showAuthError('⚠️ Wrong email or password. Please try again.');
+    document.getElementById('authPassword').value='';
+    document.getElementById('authPassword').focus();
+    return;
+  }
+  currentUser=user;errEl.style.display='none';
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('appShell').style.display='flex';
+  initApp();
+}
+function showAuthError(msg){
+  const errEl=document.getElementById('authErr');
+  errEl.textContent=msg;
+  errEl.style.display='block';
+  errEl.classList.remove('shake');
+  void errEl.offsetWidth; // restart animation
+  errEl.classList.add('shake');
+  toast(msg.replace('⚠️ ',''),'error');
+}
+function doLogout(){currentUser=null;document.getElementById('appShell').style.display='none';document.getElementById('authScreen').style.display='flex';document.getElementById('authEmail').value='';document.getElementById('authPassword').value=''}
+
+// ── NOTIFICATIONS ────────────────────────────────────────────────────────────
+function myNotifs(){if(!currentUser)return[];return DB.notifications.filter(n=>n.toId===currentUser.id).sort((a,b)=>b.createdAt>a.createdAt?1:-1)}
+function unreadNotifs(){return myNotifs().filter(n=>!n.read)}
+function timeAgo(iso){const diff=Math.floor((Date.now()-new Date(iso).getTime())/1000);if(diff<60)return'just now';if(diff<3600)return Math.floor(diff/60)+'m ago';if(diff<86400)return Math.floor(diff/3600)+'h ago';return Math.floor(diff/86400)+'d ago'}
+function refreshNotifBell(){const dot=document.getElementById('notifDot');if(!dot)return;dot.style.display=unreadNotifs().length>0?'block':'none'}
+function toggleNotifPanel(e){e.stopPropagation();const panel=document.getElementById('notifPanel');const open=panel.style.display==='block';panel.style.display=open?'none':'block';if(!open)renderNotifPanel()}
+function renderNotifPanel(){
+  const list=document.getElementById('notifList');const notifs=myNotifs().slice(0,20);
+  if(!notifs.length){list.innerHTML='<div style="padding:24px 16px;text-align:center;color:var(--text3);font-size:13px">No notifications yet.</div>';return}
+  list.innerHTML=notifs.map(n=>`<div onclick="openNotif('${n.id}','${n.link}')" style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;background:${n.read?'transparent':'var(--teal-light)'}">
+    <div style="font-size:12.5px;line-height:1.4;color:var(--text)">${n.msg}</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:4px;display:flex;align-items:center;gap:6px">${!n.read?'<span style="width:6px;height:6px;border-radius:50%;background:var(--teal);display:inline-block"></span>':''}${timeAgo(n.createdAt)}</div>
+  </div>`).join('');
+}
+function openNotif(id,link){const n=DB.notifications.find(x=>x.id===id);if(n){n.read=true;sbPatch('notifications','id=eq.'+id,{read:true}).catch(e=>console.error('Notif read error:',e));}document.getElementById('notifPanel').style.display='none';refreshNotifBell();navigate(link)}
+function markAllNotifsRead(){const ids=myNotifs().filter(n=>!n.read).map(n=>n.id);myNotifs().forEach(n=>n.read=true);ids.forEach(id=>sbPatch('notifications','id=eq.'+id,{read:true}).catch(e=>console.error('Notif read error:',e)));renderNotifPanel();refreshNotifBell()}
+document.addEventListener('click',function(e){const panel=document.getElementById('notifPanel');const bell=document.getElementById('notifBell');if(panel&&panel.style.display==='block'&&!panel.contains(e.target)&&e.target!==bell)panel.style.display='none'});
+
+function notifyStep(req,stepIdx,msgPrefix){
+  const step=req.chain[stepIdx];if(!step)return;
+  const applicant=getUserById(req.userId);
+  const lt=LEAVE_TYPES.find(t=>t.id===req.leaveType).label;
+  const msg=msgPrefix||`${applicant.name} applied for ${lt} (${req.workingDays} days)`;
+  const pushNotif=(toId)=>{
+    const n={id:uid(),toId,fromId:req.userId,msg,link:'approvals',createdAt:new Date().toISOString(),read:false};
+    DB.notifications.push(n);
+    sbPost('notifications',notifToDb(n)).catch(e=>console.error('Notif create error:',e));
+  };
+  if(step.type==='approver'){
+    pushNotif(step.userId);
+  }else{
+    DB.users.filter(u=>u.unitId===step.unitId&&u.role==='HR').forEach(hr=>pushNotif(hr.id));
+  }
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────────────────────
+function navLabelForRole(){return isROCUser(currentUser)?'All Leave Records':'Unit Leave Records'}
+function buildNav(){
+  const isMgr=currentUser.role==='GM'||currentUser.role==='HR';
+  const nav=[{id:'dashboard',label:'Dashboard',icon:'🏠'}];
+  if(currentUser.role!=='Employee') nav.push({id:'approvals',label:'Approvals',icon:'✅'});
+  nav.push({id:'apply',label:'Apply for Leave',icon:'✉️'});
+  nav.push({id:'my_leaves',label:'My Leaves',icon:'📋'});
+  nav.push({id:'team',label:isROCUser(currentUser)?'All Staff Leave':'Team Leave',icon:'👥'});
+  nav.push({id:'calendar',label:'Leave Calendar',icon:'📅'});
+  if(isMgr) nav.push({id:'employees',label:'Employees',icon:'🧑\u200d💼'});
+  if(currentUser.role==='HR') nav.push({id:'reports',label:'Reports & Export',icon:'📊'});
+  nav.push({id:'profile',label:'My Profile',icon:'👤'});
+  return nav;
+}
+
+function initApp(){
+  const u=currentUser;
+  document.getElementById('sidebarName').textContent=u.name;
+  document.getElementById('sidebarRole').textContent=`${u.role} · ${getUnit(u.unitId)?.name}`;
+  document.getElementById('sidebarAvatar').textContent=initials(u.name);
+  const nav=buildNav();
+  const navEl=document.getElementById('sidebarNav');navEl.innerHTML='';
+  nav.forEach(item=>{
+    const el=document.createElement('div');el.className='nav-item';el.dataset.view=item.id;
+    const pc=pendingCount();
+    el.innerHTML=`<span style="font-size:16px">${item.icon}</span><span>${item.label}</span>${item.id==='approvals'&&pc>0?`<span class="nav-badge">${pc}</span>`:''}`;
+    el.addEventListener('click',()=>navigate(item.id));navEl.appendChild(el);
+  });
+  refreshNotifBell();
+  navigate('dashboard');
+}
+
+function navigate(view){
+  currentView=view;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.view===view));
+  document.querySelectorAll('.nav-badge').forEach(el=>el.remove());
+  const pc=pendingCount();
+  document.querySelectorAll('.nav-item').forEach(el=>{if(el.dataset.view==='approvals'&&pc>0){const b=document.createElement('span');b.className='nav-badge';b.textContent=pc;el.appendChild(b);}});
+  const titles={dashboard:'Dashboard',apply:'Apply for Leave',my_leaves:'My Leave History',calendar:'Leave Calendar',profile:'My Profile',approvals:'Approvals',team:isROCUser(currentUser)?'All Staff Leave':'Team Leave',employees:'Employee Management',reports:'Reports & Export'};
+  document.getElementById('pageTitle').textContent=titles[view]||view;
+  document.getElementById('pageSub').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('topbarActions').innerHTML='';
+  refreshNotifBell();
+  const mc=document.getElementById('mainContent');
+  if(view==='dashboard')renderDashboard(mc);
+  else if(view==='apply')renderApply(mc);
+  else if(view==='my_leaves')renderMyLeaves(mc);
+  else if(view==='calendar')renderCalendar(mc);
+  else if(view==='profile')renderProfile(mc);
+  else if(view==='approvals')renderApprovals(mc);
+  else if(view==='team')renderTeam(mc);
+  else if(view==='employees')renderEmployeesPage(mc);
+  else if(view==='reports')renderReports(mc);
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────────────────
+function renderDashboard(mc){
+  const u=currentUser,year=CY,bal=getBalance(u.id,year);
+  const myPending=DB.requests.filter(r=>r.userId===u.id&&r.status==='pending').length;
+  const today=new Date().toISOString().slice(0,10);
+  const onLeaveToday=visibleRequests().filter(r=>r.status==='approved'&&r.startDate<=today&&r.endDate>=today);
+  let html='';
+  const onProb=isOnProbation(u);
+
+  if(onProb){
+    html+=`<div class="alert alert-warn" style="margin-bottom:16px">You are currently on probation until <strong>${fmtDate(probationEndDate(u).toISOString().slice(0,10))}</strong>. Annual leave is not yet available; other leave types are unaffected.</div>`;
+  }
+
+  html+=`<div class="grid-4">
+    <div class="stat-card"><div class="stat-icon" style="background:var(--teal-light)">🌴</div><div><div class="stat-val">${(bal.annual.entitlement-bal.annual.used).toFixed(1).replace('.0','')}</div><div class="stat-label">Annual Days Left</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--red-light)">🤒</div><div><div class="stat-val">${bal.sick.entitlement-bal.sick.used}</div><div class="stat-label">Sick Days Left</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--amber-light)">⏳</div><div><div class="stat-val">${myPending}</div><div class="stat-label">Pending Requests</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--green-light)">✅</div><div><div class="stat-val">${DB.requests.filter(r=>r.userId===u.id&&r.status==='approved').length}</div><div class="stat-label">Approved This Year</div></div></div>
+  </div>`;
+
+  html+=`<div class="card" style="margin-bottom:20px"><div class="card-title" style="margin-bottom:14px">Leave Balances — ${year}</div><div class="balance-grid">`;
+  LEAVE_TYPES.forEach(t=>{
+    const used=bal[t.id]?.used||0,ent=bal[t.id]?.entitlement,pct=ent?Math.min(used/ent*100,100):0;
+    const fc=ent&&used>=ent?'over':ent&&pct>70?'warn':'';
+    const colors={annual:'var(--teal)',sick:'var(--red)',maternity:'var(--blue)',bereavement:'#7C3AED',special:'var(--amber)'};
+    html+=`<div class="balance-card" style="border-top-color:${colors[t.id]}">
+      <div class="type">${t.label}</div><div class="used">${used}</div>
+      <div class="of">${ent!==null?'of '+ent+' days':'No limit'}</div>
+      ${ent!==null?`<div class="balance-bar"><div class="balance-fill ${fc}" style="width:${pct}%"></div></div>`:''}
+    </div>`;
+  });
+  html+='</div></div>';
+
+  if(onLeaveToday.length){
+    html+=`<div class="card" style="margin-bottom:20px"><div class="card-title" style="margin-bottom:12px">On Leave Today${isROCUser(u)?' — All Units':''}</div><div style="display:flex;flex-wrap:wrap;gap:8px">`;
+    onLeaveToday.forEach(r=>{const emp=getUserById(r.userId);html+=`<div style="display:flex;align-items:center;gap:8px;background:var(--teal-light);border-radius:20px;padding:6px 12px"><div class="user-avatar" style="width:26px;height:26px;font-size:10px;background:var(--teal)">${initials(emp?.name)}</div><span style="font-size:13px;font-weight:500">${emp?.name}</span><span class="badge badge-teal">${getUnit(emp?.unitId)?.name}</span></div>`;});
+    html+='</div></div>';
+  }
+
+  // Team awareness feed
+  const feedReqs=visibleRequests().filter(r=>r.userId!==u.id).sort((a,b)=>b.createdAt>a.createdAt?1:-1).slice(0,8);
+  html+=`<div class="card"><div class="card-title" style="margin-bottom:12px">${isROCUser(u)?'Organisation-wide':getUnit(u.unitId)?.name} Activity</div>`;
+  if(feedReqs.length){
+    html+='<div class="timeline">';
+    feedReqs.forEach(r=>{
+      const emp=getUserById(r.userId);
+      const lt=LEAVE_TYPES.find(t=>t.id===r.leaveType)?.label;
+      const dotColor=r.status==='approved'?'var(--green)':r.status==='rejected'?'var(--red)':'var(--amber)';
+      html+=`<div class="timeline-item"><div class="timeline-dot" style="background:${dotColor}"></div><div class="timeline-content">
+        <div class="tl-title">${emp?.name} — ${lt} (${r.workingDays} days)</div>
+        <div class="tl-meta">${getUnit(emp?.unitId)?.name} · ${statusLabel(r.status)} · ${fmtDate(r.startDate)} → ${fmtDate(r.endDate)}</div>
+      </div></div>`;
+    });
+    html+='</div>';
+  }else{
+    html+='<div class="td-muted" style="font-size:13px">No recent activity.</div>';
+  }
+  html+='</div>';
+
+  mc.innerHTML=html;
+}
+
+// ── APPLY ────────────────────────────────────────────────────────────────────
+function renderApply(mc){
+  const year=CY,bal=getBalance(currentUser.id,year);
+  const onProb=isOnProbation(currentUser);
+  mc.innerHTML=`<div class="grid-2" style="align-items:start">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">New Leave Request</div>
+      ${onProb?`<div class="alert alert-warn">On probation until ${fmtDate(probationEndDate(currentUser).toISOString().slice(0,10))} — Annual leave not yet available.</div>`:''}
+      <div class="form-group"><label class="form-label">Leave Type *</label><select class="form-select" id="apLeaveType" onchange="updateApplyHint()">${LEAVE_TYPES.map(t=>`<option value="${t.id}">${t.label}</option>`).join('')}</select></div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Start Date *</label><input class="form-input" id="apStart" type="date" onchange="updateApplyHint()"></div>
+        <div class="form-group"><label class="form-label">End Date *</label><input class="form-input" id="apEnd" type="date" onchange="updateApplyHint()"></div>
+      </div>
+      <div id="apHint" style="margin-bottom:14px"></div>
+      <div class="form-group"><label class="form-label">Reason / Notes</label><textarea class="form-textarea" id="apReason" placeholder="Briefly describe the reason…"></textarea></div>
+      <div class="form-group"><label class="form-label">Handover Notes (optional)</label><textarea class="form-textarea" id="apHandover" placeholder="Who covers your duties…"></textarea></div>
+      <button class="btn btn-primary btn-full" id="apSubmitBtn" onclick="submitLeave()">Submit Request →</button>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title" style="margin-bottom:12px">Your Balances — ${year}</div>
+        ${LEAVE_TYPES.map(t=>{const used=bal[t.id]?.used||0,ent=bal[t.id]?.entitlement,rem=ent!==null?ent-used:null;return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px">${t.label}</span><span style="font-size:13px;font-weight:600;color:${rem!==null&&rem<=2?'var(--red)':'var(--teal)'}">${rem!==null?rem+' days left':'—'}</span></div>`;}).join('')}
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px">Approval Path</div>
+        <div class="timeline" id="apChainPreview"></div>
+      </div>
+    </div>
+  </div>`;
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('apStart').value=today;document.getElementById('apEnd').value=today;
+  const chain=getApprovalChain(currentUser);
+  const cp=document.getElementById('apChainPreview');
+  if(!chain.length){cp.innerHTML='<div class="alert alert-danger">No approver is configured for your role yet. Contact HR.</div>';}
+  else{
+    cp.innerHTML=chain.map((s,i)=>`<div class="timeline-item"><div class="timeline-dot" style="background:${i===0?'var(--amber)':'var(--blue)'}"></div><div class="timeline-content"><div class="tl-title">${stepLabel(s)}</div><div class="tl-meta">Step ${i+1} of ${chain.length}</div></div></div>`).join('')
+      +`<div class="timeline-item"><div class="timeline-dot" style="background:var(--green)"></div><div class="timeline-content"><div class="tl-title">Leave approved</div><div class="tl-meta">Balance updated automatically</div></div></div>`;
+  }
+  updateApplyHint();
+}
+
+function updateApplyHint(){
+  const s=document.getElementById('apStart')?.value,e=document.getElementById('apEnd')?.value,t=document.getElementById('apLeaveType')?.value,hint=document.getElementById('apHint');
+  const btn=document.getElementById('apSubmitBtn');
+  if(!hint||!s||!e)return;
+  if(e<s){hint.innerHTML='<div class="alert alert-danger">End date cannot be before start date.</div>';btn.disabled=true;return}
+  const days=daysBetween(s,e);
+  const bal=getBalance(currentUser.id,CY);
+  const info=bal[t];
+  const rem=info.entitlement!==null?info.entitlement-info.used:null;
+  btn.disabled=false;
+  if(t==='annual'&&isOnProbation(currentUser)){
+    hint.innerHTML=`<div class="alert alert-danger">You are on probation and do not yet qualify for Annual leave. Eligible from ${fmtDate(probationEndDate(currentUser).toISOString().slice(0,10))}.</div>`;
+    btn.disabled=true;return;
+  }
+  if(rem!==null&&days>rem){
+    hint.innerHTML=`<div class="alert alert-danger">You only have ${rem} day${rem!==1?'s':''} of ${LEAVE_TYPES.find(lt=>lt.id===t).label} remaining. Reduce the date range or choose another leave type.</div>`;
+    btn.disabled=true;return;
+  }
+  hint.innerHTML=`<div class="alert alert-info">${days} working day${days!==1?'s':''} requested.</div>`;
+}
+
+function submitLeave(){
+  const lt=document.getElementById('apLeaveType').value;
+  const s=document.getElementById('apStart').value,e=document.getElementById('apEnd').value;
+  const reason=document.getElementById('apReason').value.trim();
+  const handover=document.getElementById('apHandover').value.trim();
+  if(!s||!e){toast('Please select start and end dates.','error');return}
+  if(e<s){toast('End date cannot be before start date.','error');return}
+  const days=daysBetween(s,e);
+  if(days===0){toast('No working days in selected range (weekends excluded).','error');return}
+  const bal=getBalance(currentUser.id,CY);
+  const info=bal[lt];
+  const rem=info.entitlement!==null?info.entitlement-info.used:null;
+  if(lt==='annual'&&isOnProbation(currentUser)){toast('You are on probation and do not yet qualify for Annual leave.','error');return}
+  if(rem!==null&&days>rem){toast(`You only have ${rem} day(s) of ${LEAVE_TYPES.find(t=>t.id===lt).label} remaining.`,'error');return}
+  const chain=getApprovalChain(currentUser);
+  if(!chain.length){toast('No approver configured for your role. Contact HR.','error');return}
+  const req={id:uid(),userId:currentUser.id,leaveType:lt,startDate:s,endDate:e,workingDays:days,reason,handover,status:'pending',year:CY,createdAt:new Date().toISOString(),chain,currentStep:0,history:[]};
+  DB.requests.push(req);
+  sbPost('requests',requestToDb(req)).catch(e=>{console.error('Request create error:',e);toast('Warning: request may not have saved to server.','error');});
+  notifyStep(req,0);
+  toast('Leave request submitted successfully!');navigate('my_leaves');
+}
+
+// ── MY LEAVES ────────────────────────────────────────────────────────────────
+function renderMyLeaves(mc){
+  const reqs=DB.requests.filter(r=>r.userId===currentUser.id).sort((a,b)=>b.createdAt>a.createdAt?1:-1);
+  mc.innerHTML=`<div style="margin-bottom:16px;text-align:right"><button class="btn btn-primary" onclick="navigate('apply')">+ New Request</button></div>`;
+  if(!reqs.length){mc.innerHTML+=`<div class="card"><div class="empty"><div class="emoji">📋</div><p>No leave requests yet.</p></div></div>`;return}
+  mc.innerHTML+=`<div class="card"><div class="table-wrap"><table><thead><tr><th>Type</th><th>Start</th><th>End</th><th>Days</th><th>Status</th><th>Currently With</th><th>Applied</th><th></th></tr></thead><tbody>
+  ${reqs.map(r=>{
+    const step=r.status==='pending'?r.chain[r.currentStep]:null;
+    return`<tr>
+    <td style="font-weight:500">${LEAVE_TYPES.find(t=>t.id===r.leaveType)?.label}</td>
+    <td>${fmtDate(r.startDate)}</td><td>${fmtDate(r.endDate)}</td><td>${r.workingDays}</td>
+    <td><span class="badge ${statusBadge(r.status)}">${statusLabel(r.status)}</span></td>
+    <td class="td-muted">${step?stepLabel(step):'—'}</td>
+    <td class="td-muted">${fmtDate(r.createdAt?.slice(0,10))}</td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-ghost btn-sm" onclick="viewRequest('${r.id}')">View</button>
+      ${r.status==='pending'&&r.currentStep===0?`<button class="btn btn-danger btn-sm" onclick="cancelRequest('${r.id}')">Cancel</button>`:''}
+    </td>
+  </tr>`;}).join('')}
+  </tbody></table></div></div>`;
+}
+
+function viewRequest(id){
+  const r=DB.requests.find(x=>x.id===id);if(!r)return;
+  const lt=LEAVE_TYPES.find(t=>t.id===r.leaveType);
+  let histHtml='';
+  if(r.history&&r.history.length){
+    histHtml='<div class="form-group"><div class="form-label">History</div><div class="timeline">'+
+      r.history.map(h=>`<div class="timeline-item"><div class="timeline-dot" style="background:${h.action==='approved'?'var(--green)':'var(--red)'}"></div><div class="timeline-content"><div class="tl-title">${h.byName} ${h.action}</div><div class="tl-meta">${fmtDate(h.at?.slice(0,10))}${h.note?' — '+h.note:''}</div></div></div>`).join('')
+      +'</div></div>';
+  }
+  openModal('Leave Request Details',`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div><div class="form-label">Leave Type</div><strong>${lt?.label}</strong></div>
+      <div><div class="form-label">Status</div><span class="badge ${statusBadge(r.status)}">${statusLabel(r.status)}</span></div>
+      <div><div class="form-label">Start Date</div>${fmtDate(r.startDate)}</div>
+      <div><div class="form-label">End Date</div>${fmtDate(r.endDate)}</div>
+      <div><div class="form-label">Working Days</div>${r.workingDays}</div>
+      <div><div class="form-label">Applied On</div>${fmtDate(r.createdAt?.slice(0,10))}</div>
+    </div>
+    ${r.reason?`<div class="form-group"><div class="form-label">Reason</div><div style="font-size:13px;padding:10px;background:var(--bg2);border-radius:var(--radius)">${r.reason}</div></div>`:''}
+    ${r.handover?`<div class="form-group"><div class="form-label">Handover Notes</div><div style="font-size:13px;padding:10px;background:var(--bg2);border-radius:var(--radius)">${r.handover}</div></div>`:''}
+    ${histHtml}
+  `,`<button class="btn btn-secondary" onclick="closeModal()">Close</button>`);
+}
+function cancelRequest(id){if(!confirm('Cancel this leave request?'))return;DB.requests=DB.requests.filter(r=>r.id!==id);sbDelete('requests','id=eq.'+id).catch(e=>console.error('Request delete error:',e));toast('Request cancelled.','info');navigate('my_leaves')}
+
+// ── APPROVALS ────────────────────────────────────────────────────────────────
+function renderApprovals(mc){
+  const reqs=DB.requests.filter(isAwaitingMe).sort((a,b)=>b.createdAt>a.createdAt?1:-1);
+  if(!reqs.length){mc.innerHTML=`<div class="card"><div class="empty"><div class="emoji">✅</div><p>No pending requests. All clear.</p></div></div>`;return}
+  mc.innerHTML=`<div class="card"><div class="card-title" style="margin-bottom:16px">${reqs.length} request${reqs.length!==1?'s':''} awaiting your decision</div>
+    <div class="table-wrap"><table><thead><tr><th>Employee</th><th>Unit</th><th>Leave Type</th><th>Start</th><th>End</th><th>Days</th><th>Reason</th><th>Step</th><th>Actions</th></tr></thead><tbody>
+    ${reqs.map(r=>{const emp=getUserById(r.userId),lt=LEAVE_TYPES.find(t=>t.id===r.leaveType);return`<tr>
+      <td><div style="font-weight:600">${emp?.name}</div><div class="td-muted">${emp?.designation} (${emp?.role})</div></td>
+      <td class="td-muted">${getUnit(emp?.unitId)?.name}</td><td>${lt?.label}</td>
+      <td>${fmtDate(r.startDate)}</td><td>${fmtDate(r.endDate)}</td><td><strong>${r.workingDays}</strong></td>
+      <td class="td-muted" style="max-width:140px;white-space:normal">${r.reason||'—'}</td>
+      <td class="td-muted">${r.currentStep+1} of ${r.chain.length}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-success btn-sm" onclick="decideRequest('${r.id}','approve')">✓ Approve</button>
+        <button class="btn btn-danger btn-sm" onclick="decideRequest('${r.id}','reject')">✗ Reject</button>
+        <button class="btn btn-ghost btn-sm" onclick="viewRequest('${r.id}')">View</button>
+      </td>
+    </tr>`;}).join('')}
+    </tbody></table></div></div>`;
+}
+
+function decideRequest(id,action){
+  const r=DB.requests.find(x=>x.id===id),emp=getUserById(r.userId);
+  openModal(action==='approve'?'Approve Leave Request':'Reject Leave Request',`
+    <div class="alert ${action==='approve'?'alert-success':'alert-danger'}" style="margin-bottom:14px">
+      ${action==='approve'?'Approving':'Rejecting'} ${emp?.name}'s request for ${r.workingDays} days of ${LEAVE_TYPES.find(t=>t.id===r.leaveType)?.label}. Step ${r.currentStep+1} of ${r.chain.length}.
+    </div>
+    <div class="form-group"><label class="form-label">${action==='approve'?'Note (optional)':'Reason for rejection *'}</label>
+    <textarea class="form-textarea" id="decisionNote" placeholder="${action==='approve'?'Any conditions or notes…':'Explain why the request is being rejected…'}"></textarea></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+     <button class="btn ${action==='approve'?'btn-success':'btn-danger'}" onclick="confirmDecision('${id}','${action}')">${action==='approve'?'✓ Confirm Approval':'✗ Confirm Rejection'}</button>`);
+}
+
+function confirmDecision(id,action){
+  const note=document.getElementById('decisionNote')?.value.trim();
+  if(action==='reject'&&!note){toast('Please provide a reason for rejection.','error');return}
+  const r=DB.requests.find(x=>x.id===id);
+  const lt=LEAVE_TYPES.find(t=>t.id===r.leaveType).label;
+  r.history=r.history||[];
+  r.history.push({byId:currentUser.id,byName:currentUser.name,action:action==='approve'?'approved':'rejected',note,at:new Date().toISOString()});
+  const pushNotif=(msg)=>{
+    const n={id:uid(),toId:r.userId,fromId:currentUser.id,msg,link:'my_leaves',createdAt:new Date().toISOString(),read:false};
+    DB.notifications.push(n);
+    sbPost('notifications',notifToDb(n)).catch(e=>console.error('Notif create error:',e));
+  };
+  if(action==='approve'){
+    r.currentStep++;
+    if(r.currentStep>=r.chain.length){
+      r.status='approved';
+      pushNotif(`Your ${lt} request was fully approved.`);
+      toast('Request fully approved.','success');
+    }else{
+      notifyStep(r,r.currentStep,`${getUserById(r.userId).name}'s ${lt} request needs your sign-off`);
+      pushNotif(`Your ${lt} request moved to the next approval step.`);
+      toast('Approved — moved to next step.','success');
+    }
+  }else{
+    r.status='rejected';
+    pushNotif(`Your ${lt} request was rejected. Reason: ${note}`);
+    toast('Request rejected.','info');
+  }
+  sbPatch('requests','id=eq.'+r.id,{status:r.status,current_step:r.currentStep,history:r.history}).catch(e=>console.error('Request update error:',e));
+  closeModal();navigate('approvals');
+}
+
+// ── CALENDAR ─────────────────────────────────────────────────────────────────
+function renderCalendar(mc){
+  mc.innerHTML=`<div class="card">
+    <div class="cal-header"><button class="btn btn-secondary btn-sm" onclick="calPrev()">← Prev</button><h3 id="calTitle" style="font-size:16px;font-weight:700"></h3><button class="btn btn-secondary btn-sm" onclick="calNext()">Next →</button></div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--teal-light)"></div><span style="font-size:12px">Annual</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--red-light)"></div><span style="font-size:12px">Sick</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--blue-light)"></div><span style="font-size:12px">Maternity/Paternity</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:#F3E8FF"></div><span style="font-size:12px">Bereavement</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--amber-light)"></div><span style="font-size:12px">Special</span></div>
+    </div>
+  </div>`;buildCal();
+}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}buildCal()}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}buildCal()}
+function buildCal(){
+  document.getElementById('calTitle').textContent=`${MONTHS[calMonth]} ${calYear}`;
+  const grid=document.getElementById('calGrid');
+  grid.innerHTML=DAYS.map(d=>`<div class="cal-day-hdr">${d}</div>`).join('');
+  const first=new Date(calYear,calMonth,1).getDay(),days=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date().toISOString().slice(0,10);
+  const approvedReqs=visibleRequests().filter(r=>r.status==='approved');
+  for(let i=0;i<first;i++)grid.innerHTML+=`<div class="cal-cell other-month"></div>`;
+  for(let d=1;d<=days;d++){
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const wd=new Date(dateStr).getDay(),isToday=dateStr===today,isWeekend=wd===0||wd===6;
+    const events=approvedReqs.filter(r=>r.startDate<=dateStr&&r.endDate>=dateStr&&!isWeekend);
+    let evHtml=events.slice(0,3).map(r=>{const emp=getUserById(r.userId);const cls=r.leaveType==='sick'?'sick':r.leaveType==='maternity'?'mat':r.leaveType==='bereavement'?'ber':r.leaveType==='special'?'spl':'';return`<div class="cal-event ${cls}" title="${emp?.name}">${emp?.name?.split(' ')[0]}</div>`;}).join('');
+    if(events.length>3)evHtml+=`<div style="font-size:10px;color:var(--text3)">+${events.length-3} more</div>`;
+    grid.innerHTML+=`<div class="cal-cell${isToday?' today':isWeekend?' weekend':''}"><div class="cal-num">${d}</div>${evHtml}</div>`;
+  }
+}
+
+// ── TEAM / UNIT LEAVE ─────────────────────────────────────────────────────────
+function renderTeam(mc){
+  const users=visibleUsers().filter(u=>u.id!==currentUser.id);
+  if(!users.length){mc.innerHTML=`<div class="card"><div class="empty"><div class="emoji">👥</div><p>No colleagues found.</p></div></div>`;return}
+  const today=new Date().toISOString().slice(0,10);
+  const byUnit={};
+  users.forEach(u=>{(byUnit[u.unitId]=byUnit[u.unitId]||[]).push(u)});
+  let html='';
+  Object.keys(byUnit).forEach(unitId=>{
+    const unitUsersList=byUnit[unitId];
+    html+=`<div class="card" style="margin-bottom:16px"><div class="card-title" style="margin-bottom:14px">${getUnit(unitId)?.name} — ${unitUsersList.length} member${unitUsersList.length!==1?'s':''}</div>
+    <div class="table-wrap"><table><thead><tr><th>Employee</th><th>Role</th><th>Type</th><th>Annual Used</th><th>Sick Used</th><th>Status Today</th><th>Pending</th></tr></thead><tbody>
+    ${unitUsersList.map(emp=>{
+      const bal=getBalance(emp.id,CY),onLeave=DB.requests.find(r=>r.userId===emp.id&&r.status==='approved'&&r.startDate<=today&&r.endDate>=today);
+      const pending=DB.requests.filter(r=>r.userId===emp.id&&r.status==='pending').length;
+      return`<tr><td style="font-weight:600">${emp.name}</td><td class="td-muted">${emp.role}</td><td class="td-muted">${emp.employmentType}</td><td>${bal.annual.used} / ${bal.annual.entitlement}</td><td>${bal.sick.used} / ${bal.sick.entitlement}</td>
+        <td>${onLeave?`<span class="badge badge-teal">${LEAVE_TYPES.find(t=>t.id===onLeave.leaveType)?.label}</span>`:'<span class="badge badge-approved">Present</span>'}</td>
+        <td>${pending?`<span class="badge badge-pending">${pending}</span>`:'—'}</td></tr>`;
+    }).join('')}
+    </tbody></table></div></div>`;
+  });
+  mc.innerHTML=html;
+}
+
+// ── EMPLOYEES ────────────────────────────────────────────────────────────────
+function canManageEmployees(){return currentUser.role==='GM'||currentUser.role==='HR'}
+function isROCHR(){return currentUser.role==='HR'&&isROCUser(currentUser)}
+function renderEmployeesPage(mc){
+  if(!canManageEmployees()){mc.innerHTML='<div class="card"><div class="empty"><div class="emoji">🔒</div><p>Only General Managers and HR representatives manage employee records.</p></div></div>';return}
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary" onclick="openAddEmployee()">+ Add Employee</button>`;
+  const rocHR=isROCHR();
+  let filterHtml='';
+  const filterUnit=document.getElementById('empUnitFilter')?.value||'';
+  if(rocHR){
+    filterHtml=`<div style="margin-bottom:16px"><select class="form-select" id="empUnitFilter" style="width:240px" onchange="renderEmployeesPage(document.getElementById('mainContent'))"><option value="">All Units</option>${UNITS.map(un=>`<option value="${un.id}"${filterUnit===un.id?' selected':''}>${un.name}</option>`).join('')}</select></div>`;
+  }
+  const users=rocHR?DB.users.filter(u=>!filterUnit||u.unitId===filterUnit):DB.users.filter(u=>u.unitId===currentUser.unitId);
+  mc.innerHTML=filterHtml+`<div class="card"><div class="table-wrap"><table><thead><tr><th>Name</th>${rocHR?'<th>Unit</th>':''}<th>Email</th><th>Role</th><th>Type</th><th>Reports To</th><th>Hire Date</th><th>Actions</th></tr></thead><tbody>
+  ${users.map(u=>{const rep=getUserById(u.reportsTo);return`<tr>
+    <td><div style="display:flex;align-items:center;gap:10px"><div class="user-avatar" style="background:var(--teal);width:30px;height:30px;font-size:11px">${initials(u.name)}</div><div><div style="font-weight:500">${u.name}</div><div class="td-muted">${u.designation}</div></div></div></td>
+    ${rocHR?`<td class="td-muted">${getUnit(u.unitId)?.name}</td>`:''}
+    <td class="td-muted">${u.email}</td>
+    <td><span class="badge badge-teal">${u.role}</span></td>
+    <td class="td-muted">${u.employmentType}</td>
+    <td class="td-muted">${rep?rep.name:'—'}</td>
+    <td class="td-muted">${fmtDate(u.hireDate)}</td>
+    <td style="white-space:nowrap">
+      ${(u.role==='Employee'||u.role==='Supervisor')?`<button class="btn btn-ghost btn-sm" onclick="openAssignSupervisor('${u.id}')">🔀 Assign</button>`:''}
+      <button class="btn btn-ghost btn-sm" onclick="openEditEmployee('${u.id}')">✏️ Edit</button>
+      <button class="btn btn-ghost btn-sm" onclick="resetEmpPw('${u.id}')">🔑 Reset</button>
+      ${u.id!==currentUser.id?`<button class="btn btn-danger btn-sm" onclick="deleteEmployee('${u.id}')">🗑️</button>`:''}
+    </td>
+  </tr>`;}).join('')}
+  </tbody></table></div></div>`;
+}
+
+// Dedicated quick-action for HR/GM to move an Employee under a specific Supervisor,
+// or a Supervisor under a specific GM/Manager, without opening the full Edit form.
+function openAssignSupervisor(id){
+  const u=getUserById(id);
+  const opts=roleReportOptions(u.unitId,u.role);
+  const label=u.role==='Employee'?'Supervisor':(getUnit(u.unitId).type==='sdu'?'GM':'Manager / Regional Manager');
+  if(!opts.length){
+    openModal('Assign '+label,`<div class="alert alert-warn">There is no eligible ${label} in ${getUnit(u.unitId).name} to assign ${u.name} to yet.</div>`,`<button class="btn btn-secondary" onclick="closeModal()">Close</button>`);
+    return;
+  }
+  openModal('Assign '+label+' — '+u.name,`
+    <p style="margin-bottom:14px;font-size:13px;color:var(--text2)">Choose who ${u.name} (${u.role}, ${getUnit(u.unitId).name}) should report to. This is who their leave requests go to first.</p>
+    <div class="form-group"><label class="form-label">${label}</label>
+      <select class="form-select" id="as_reportsTo">${opts.map(o=>`<option value="${o.id}"${u.reportsTo===o.id?' selected':''}>${o.name} (${o.role})</option>`).join('')}</select>
+    </div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="confirmAssignSupervisor('${id}')">Save Assignment</button>`);
+}
+function confirmAssignSupervisor(id){
+  const u=getUserById(id);
+  const newRep=document.getElementById('as_reportsTo').value;
+  u.reportsTo=newRep;
+  sbPatch('users','id=eq.'+id,{reports_to:newRep}).catch(e=>console.error('Assign supervisor error:',e));
+  closeModal();
+  toast(`${u.name} now reports to ${getUserById(newRep).name}.`);
+  renderEmployeesPage(document.getElementById('mainContent'));
+}
+
+function roleReportOptions(unitId,role){
+  const unit=getUnit(unitId);
+  if(role==='Employee'){
+    let sups=unitUsers(unitId,'Supervisor');
+    if(!sups.length)sups=unit.type==='sdu'?unitUsers(unitId,'GM'):unitUsers(unitId,'Manager');
+    return sups;
+  }
+  if(role==='Supervisor'){
+    if(unit.type==='sdu'){
+      const gms=unitUsers(unitId,'GM');
+      return gms.length?gms:(getRegionalManager()?[getRegionalManager()]:[]);
+    }else{
+      const mgrs=unitUsers(unitId,'Manager');
+      const rm=getRegionalManager();
+      return rm?[...mgrs,rm]:mgrs;
+    }
+  }
+  return []; // GM/Manager/Regional Manager/HR auto-route, no manual pick
+}
+
+function empFormHtml(u){
+  const canPickUnit=isROCHR();
+  const filterUnit=document.getElementById('empUnitFilter')?.value;
+  const unitId=u?.unitId||filterUnit||currentUser.unitId;
+  const unit=getUnit(unitId);
+  const roles=rolesForUnit(unit.id).filter(r=>r!=='Regional Manager'); // don't allow creating a 2nd RM from this form
+  const role=u?.role||roles[0];
+  const reportOpts=roleReportOptions(unit.id,role);
+  return `<div class="form-grid">
+  <div class="form-group" style="grid-column:1/-1"><label class="form-label">Full Name *</label><input class="form-input" id="ef_name" value="${u?.name||''}"></div>
+  <div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="ef_email" type="email" value="${u?.email||''}"></div>
+  <div class="form-group"><label class="form-label">Password ${u?'(blank = unchanged)':'*'}</label><input class="form-input" id="ef_password" type="password"></div>
+  <div class="form-group"><label class="form-label">Unit${canPickUnit?' *':''}</label>${canPickUnit
+    ?`<select class="form-select" id="ef_unit" onchange="refreshUnitDependentFields()">${UNITS.map(un=>`<option value="${un.id}"${unitId===un.id?' selected':''}>${un.name}</option>`).join('')}</select>`
+    :`<input class="form-input" value="${unit.name}" disabled><input type="hidden" id="ef_unit" value="${unit.id}">`}</div>
+  <div class="form-group"><label class="form-label">Role *</label><select class="form-select" id="ef_role" onchange="refreshReportsToOptions()">${roles.map(r=>`<option value="${r}"${role===r?' selected':''}>${r}</option>`).join('')}</select></div>
+  <div class="form-group" style="grid-column:1/-1"><label class="form-label">Reports To (approver)</label><select class="form-select" id="ef_reportsTo">${reportOpts.map(o=>`<option value="${o.id}"${u?.reportsTo===o.id?' selected':''}>${o.name} (${o.role})</option>`).join('')||'<option value="">Auto-routed — no selection needed</option>'}</select></div>
+  <div class="form-group"><label class="form-label">Employment Type *</label><select class="form-select" id="ef_etype"><option value="Permanent"${u?.employmentType==='Permanent'?' selected':''}>Permanent</option><option value="Casual"${u?.employmentType==='Casual'?' selected':''}>Casual</option></select></div>
+  <div class="form-group"><label class="form-label">Hire Date *</label><input class="form-input" id="ef_hire" type="date" value="${u?.hireDate||''}"></div>
+  <div class="form-group" style="grid-column:1/-1"><label class="form-label">Designation</label><input class="form-input" id="ef_desig" value="${u?.designation||''}"></div>
+</div>`}
+
+function refreshUnitDependentFields(){
+  const unitId=document.getElementById('ef_unit').value;
+  const roles=rolesForUnit(unitId).filter(r=>r!=='Regional Manager');
+  const roleSel=document.getElementById('ef_role');
+  roleSel.innerHTML=roles.map(r=>`<option value="${r}">${r}</option>`).join('');
+  refreshReportsToOptions();
+}
+function refreshReportsToOptions(){
+  const unitId=document.getElementById('ef_unit').value;
+  const role=document.getElementById('ef_role').value;
+  const opts=roleReportOptions(unitId,role);
+  const sel=document.getElementById('ef_reportsTo');
+  sel.innerHTML=opts.map(o=>`<option value="${o.id}">${o.name} (${o.role})</option>`).join('')||'<option value="">Auto-routed — no selection needed</option>';
+}
+
+function openAddEmployee(){openModal('Add Employee',empFormHtml(null),`<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveEmployee(null)">Add Employee</button>`)}
+function openEditEmployee(id){const u=getUserById(id);openModal('Edit Employee',empFormHtml(u),`<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveEmployee('${id}')">Save Changes</button>`)}
+function saveEmployee(id){
+  const name=document.getElementById('ef_name').value.trim(),email=document.getElementById('ef_email').value.trim(),pw=document.getElementById('ef_password').value;
+  const unitId=document.getElementById('ef_unit').value;
+  const role=document.getElementById('ef_role').value,reportsTo=document.getElementById('ef_reportsTo').value||null;
+  const etype=document.getElementById('ef_etype').value,hire=document.getElementById('ef_hire').value,desig=document.getElementById('ef_desig').value.trim();
+  if(!name||!email){toast('Name and email required.','error');return}
+  if(!id&&!pw){toast('Password required for new employees.','error');return}
+  if(!hire){toast('Hire date is required.','error');return}
+  if(id){
+    const u=DB.users.find(x=>x.id===id);
+    u.name=name;u.email=email;u.unitId=unitId;u.role=role;u.reportsTo=reportsTo;u.employmentType=etype;u.hireDate=hire;u.designation=desig;
+    if(pw)u.password=pw;
+    sbPatch('users','id=eq.'+id,userToDb(u)).catch(e=>console.error('Employee update error:',e));
+    toast('Employee updated.');
+  }else{
+    const newU={id:uid(),name,email,password:pw,unitId,role,employmentType:etype,hireDate:hire,designation:desig,reportsTo};
+    DB.users.push(newU);
+    sbPost('users',userToDb(newU)).catch(e=>console.error('Employee create error:',e));
+    toast('Employee added.');
+  }
+  closeModal();renderEmployeesPage(document.getElementById('mainContent'));
+}
+function resetEmpPw(id){const u=getUserById(id);openModal('Reset Password',`<p style="margin-bottom:14px;font-size:13px">Set new password for <strong>${u.name}</strong>.</p><div class="form-group"><label class="form-label">New Password *</label><input class="form-input" id="rp_pw" type="password"></div><div class="form-group"><label class="form-label">Confirm *</label><input class="form-input" id="rp_cf" type="password"></div>`,`<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="confirmResetPw('${id}')">Set Password</button>`)}
+function confirmResetPw(id){const pw=document.getElementById('rp_pw').value,cf=document.getElementById('rp_cf').value;if(!pw||pw.length<6){toast('Min 6 characters.','error');return}if(pw!==cf){toast('Passwords do not match.','error');return}DB.users.find(u=>u.id===id).password=pw;sbPatch('users','id=eq.'+id,{password:pw}).catch(e=>console.error('Password reset error:',e));closeModal();toast('Password reset.')}
+function deleteEmployee(id){if(!confirm('Delete this employee?'))return;DB.users=DB.users.filter(u=>u.id!==id);sbDelete('users','id=eq.'+id).catch(e=>console.error('Employee delete error:',e));renderEmployeesPage(document.getElementById('mainContent'));toast('Employee removed.','info')}
+
+// ── REPORTS ──────────────────────────────────────────────────────────────────
+function renderReports(mc){
+  const year=CY;
+  const scopeUsers=isROCUser(currentUser)?DB.users:DB.users.filter(u=>u.unitId===currentUser.unitId);
+  mc.innerHTML=`<div class="card" style="margin-bottom:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="card-title">Leave Summary — ${year} ${isROCUser(currentUser)?'(All Units)':'('+getUnit(currentUser.unitId).name+')'}</div>
+      <button class="btn btn-primary btn-sm" onclick="exportToExcel(${year})">⬇ Export to Excel</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Name</th><th>Unit</th><th>Role</th><th>Type</th>${LEAVE_TYPES.map(t=>`<th style="text-align:center">${t.label}</th>`).join('')}</tr></thead><tbody>
+    ${scopeUsers.map(emp=>{const bal=getBalance(emp.id,year);return`<tr><td style="font-weight:500">${emp.name}</td><td class="td-muted">${getUnit(emp.unitId)?.name}</td><td class="td-muted">${emp.role}</td><td class="td-muted">${emp.employmentType}</td>${LEAVE_TYPES.map(t=>`<td style="text-align:center">${bal[t.id]?.used||0}${bal[t.id]?.entitlement!==null?' / '+bal[t.id].entitlement:''}</td>`).join('')}</tr>`;}).join('')}
+    </tbody></table></div>
+  </div>
+  <div class="grid-3">
+    ${LEAVE_TYPES.map(t=>{const scopeIds=new Set(scopeUsers.map(u=>u.id));const total=DB.requests.filter(r=>r.leaveType===t.id&&r.status==='approved'&&r.year===year&&scopeIds.has(r.userId)).reduce((s,r)=>s+r.workingDays,0),count=DB.requests.filter(r=>r.leaveType===t.id&&r.status==='approved'&&r.year===year&&scopeIds.has(r.userId)).length;return`<div class="stat-card"><div class="stat-icon" style="background:var(--teal-light)">📊</div><div><div class="stat-val">${total}</div><div class="stat-label">${t.label} — ${count} requests</div></div></div>`;}).join('')}
+  </div>`;
+}
+function exportToExcel(year){
+  const scopeUsers=isROCUser(currentUser)?DB.users:DB.users.filter(u=>u.unitId===currentUser.unitId);
+  const hdr=['NO','NAME','UNIT','ROLE','TYPE','ANNUAL USED','ANNUAL ENTITLEMENT','SICK USED','SICK ENTITLEMENT','MATERNITY/PATERNITY','BEREAVEMENT','SPECIAL'];
+  const rows=[hdr];
+  scopeUsers.forEach((emp,i)=>{const bal=getBalance(emp.id,year);rows.push([i+1,emp.name,getUnit(emp.unitId)?.name,emp.role,emp.employmentType,bal.annual.used,bal.annual.entitlement,bal.sick.used,bal.sick.entitlement,bal.maternity.used,bal.bereavement.used,bal.special.used]);});
+  const csv=rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`4WARD_Leave_${year}.csv`;a.click();toast('Export downloaded.');
+}
+
+// ── PROFILE ──────────────────────────────────────────────────────────────────
+function renderProfile(mc){
+  const u=currentUser,bal=getBalance(u.id,CY);
+  mc.innerHTML=`<div class="grid-2" style="align-items:start">
+    <div class="card">
+      <div style="text-align:center;padding:1rem 0;margin-bottom:16px">
+        <div class="user-avatar" style="width:64px;height:64px;font-size:22px;background:var(--teal);margin:0 auto 12px">${initials(u.name)}</div>
+        <div style="font-size:18px;font-weight:700">${u.name}</div>
+        <div style="font-size:13px;color:var(--text3)">${u.designation} · ${getUnit(u.unitId)?.name}</div>
+        <span class="badge badge-teal" style="margin-top:8px">${u.role}</span> <span class="badge badge-hr">${u.employmentType}</span>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:14px">
+        <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="pf_name" value="${u.name}"></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="pf_email" value="${u.email}"></div>
+        <button class="btn btn-primary btn-full" onclick="saveProfile()">Save Profile</button>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
+        <div style="font-weight:600;margin-bottom:12px">Change Password</div>
+        <div class="form-group"><label class="form-label">Current Password</label><input class="form-input" id="pf_cur" type="password"></div>
+        <div class="form-group"><label class="form-label">New Password</label><input class="form-input" id="pf_new" type="password"></div>
+        <div class="form-group"><label class="form-label">Confirm New Password</label><input class="form-input" id="pf_cf" type="password"></div>
+        <button class="btn btn-secondary btn-full" onclick="changePassword()">Change Password</button>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title" style="margin-bottom:14px">Leave Balances — ${CY}</div>
+        ${LEAVE_TYPES.map(t=>{const used=bal[t.id]?.used||0,ent=bal[t.id]?.entitlement,rem=ent!==null?ent-used:null,pct=ent?Math.min(used/ent*100,100):0;return`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:500">${t.label}</span><span style="font-size:13px;color:${rem!==null&&rem<=2?'var(--red)':'var(--text2)'}">${used}${ent!==null?' / '+ent:''} days${rem!==null?' ('+rem+' left)':''}</span></div>${ent!==null?`<div class="balance-bar"><div class="balance-fill ${pct>80?'warn':''}" style="width:${pct}%"></div></div>`:''}</div>`;}).join('')}
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:14px">My Leave History</div>
+        ${DB.requests.filter(r=>r.userId===u.id).slice(0,5).map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:500">${LEAVE_TYPES.find(t=>t.id===r.leaveType)?.label}</div><div style="font-size:11px;color:var(--text3)">${fmtDate(r.startDate)} → ${fmtDate(r.endDate)} · ${r.workingDays} days</div></div><span class="badge ${statusBadge(r.status)}">${statusLabel(r.status)}</span></div>`).join('')||'<div class="td-muted" style="font-size:13px">No leave history yet.</div>'}
+      </div>
+    </div>
+  </div>`;
+}
+function saveProfile(){const name=document.getElementById('pf_name').value.trim(),email=document.getElementById('pf_email').value.trim();if(!name||!email){toast('Name and email required.','error');return}currentUser.name=name;currentUser.email=email;const u=DB.users.find(x=>x.id===currentUser.id);u.name=name;u.email=email;document.getElementById('sidebarName').textContent=name;document.getElementById('sidebarAvatar').textContent=initials(name);sbPatch('users','id=eq.'+currentUser.id,{name,email}).catch(e=>console.error('Profile save error:',e));toast('Profile saved.')}
+function changePassword(){const cur=document.getElementById('pf_cur').value,nw=document.getElementById('pf_new').value,cf=document.getElementById('pf_cf').value;if(cur!==currentUser.password){toast('Current password incorrect.','error');return}if(!nw||nw.length<6){toast('Min 6 characters.','error');return}if(nw!==cf){toast('Passwords do not match.','error');return}currentUser.password=nw;DB.users.find(u=>u.id===currentUser.id).password=nw;sbPatch('users','id=eq.'+currentUser.id,{password:nw}).catch(e=>console.error('Password change error:',e));toast('Password changed.');document.getElementById('pf_cur').value='';document.getElementById('pf_new').value='';document.getElementById('pf_cf').value=''}
+
+document.getElementById('modalBg').addEventListener('click',function(e){if(e.target===this)closeModal()});
+(async()=>{
+  const loaded=await loadFromSupabase();
+  if(!loaded){
+    document.body.innerHTML='<div style="display:flex;height:100vh;align-items:center;justify-content:center;font-family:Inter,sans-serif;flex-direction:column;gap:12px;color:#0B6E6E"><div style="font-size:32px">⚠️</div><div style="font-size:16px;font-weight:600">Cannot connect to server</div><div style="font-size:13px;color:#3D5C5C">Check your internet connection and refresh the page.</div><button onclick="location.reload()" style="margin-top:8px;padding:8px 20px;background:#0B6E6E;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">Retry</button></div>';
+    return;
+  }
+  await initDB();
+  if(UNITS.length===0){await loadFromSupabase();}
+  hideBootScreen();
+})();
+
+</script>
+</body>
+</html>
